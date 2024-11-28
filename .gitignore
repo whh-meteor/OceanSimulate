@@ -1,4 +1,24 @@
 build
 dist
-static
+# static
 tempfile
+*.cpg
+*.dbf
+*.prj
+*.sbn
+*.sbx
+*.shp
+*.shp.xml
+*.shx
+*.png
+*.png.aux.xml
+*.jpg
+*.jpeg
+
+*.tif
+*.tif.aux.xml
+*.grd
+*.grd.aux.xml
+*.json
+*.nc
+*.nc.aux.xml

@@ -1,5 +1,5 @@
 from flask import Flask
-from routes import init_routes
+from route.routes import init_routes
 from route.thematic import thematic_routes
 import gmsh
 import os
