@@ -149,39 +149,38 @@ def Mesh_nodes_to_Triangle_Json(mesh):
     else:
         print("No nodes or triangles found.")
 
+# 提高效率版
 def Geojson_to_Mesh(geojson_data):
-    # with open("test.json", 'w') as file:
-    #         json.dump(geojson_data, file)
     nodes_dict = {}  # 用字典保存节点信息，key 为节点 id
     triangles = []
     
-    # 解析 GeoJSON 中的每个 feature
+    valid_features = []
+    
+    # 解析 GeoJSON 中的每个 feature，筛选有效的 features
     for feature in geojson_data['features']:
-        triangle_id = feature['properties']['id']
         coordinates = feature['geometry']['coordinates'][0]  # 获取三角形的外环
-        # 保存正常的features
-        valid_features = []
-        # 获取每个点的属性信息
+        triangle_id = feature['properties']['id']
+        
+        if len(coordinates) < 4:
+            print(f"Feature {triangle_id} 的坐标点数量不足，已删除。")
+            continue  # 跳过该Feature
+        
+        if len(set(tuple(c) for c in coordinates[:-1])) < 3:
+            print(f"Feature {triangle_id} 存在重复点，已删除。")
+            continue  # 跳过该Feature
+        
+        # 如果是有效的feature，加入 valid_features 列表
+        valid_features.append(feature)
+    
+    # 更新geojson_data中features为有效的features
+    geojson_data['features'] = valid_features
+    
+    # 遍历有效的三角形，获取节点信息
+    for feature in geojson_data['features']:
+        coordinates = feature['geometry']['coordinates'][0]  # 获取三角形的外环
+        triangle_id = feature['properties']['id']
         points_properties = feature['properties']['points_properties']
-        # for feature in geojson_data['features']:
-        #     coords = feature['geometry']['coordinates'][0]
-        #     if len(coords) < 4:
-        #         print(f"Feature {feature['properties']['id']} 的坐标点数量不足。")
-        #     if len(set(tuple(c) for c in coords[:-1])) < 3:
-        #         print(f"Feature {feature['properties']['id']} 存在重复点。")
-        for feature in geojson_data['features']:
-            coords = feature['geometry']['coordinates'][0]
-            if len(coords) < 4:
-                print(f"Feature {feature['properties']['id']} 的坐标点数量不足，已删除。")
-                continue  # 跳过该Feature
-            if len(set(tuple(c) for c in coords[:-1])) < 3:
-                print(f"Feature {feature['properties']['id']} 存在重复点，已删除。")
-                continue  # 跳过该Feature
-            valid_features.append(feature)  # 添加到有效Features列表中
-
-        # 更新geojson_data中features为有效的features
-        geojson_data['features'] = valid_features
-        # 遍历三角形的三个顶点及其属性
+        
         node_ids = []
         for i, coord in enumerate(coordinates[:-1]):  # 跳过最后一个坐标，因为它是第一个坐标的重复
             point = points_properties[i]
@@ -192,18 +191,15 @@ def Geojson_to_Mesh(geojson_data):
             # 将节点保存到字典，key 是节点 id
             nodes_dict[node_id] = f"{node_id} {x:.15f} {y:.15f} {depth:.12f} {value}"
             node_ids.append(str(node_id))
-        # print(f"节点 {node_ids} 构成了三角形 {triangle_id}。")
+        
         # 确保每个三角形正好有三个节点
         if len(node_ids) == 3:
             triangles.append(f"{triangle_id} {node_ids[0]} {node_ids[1]} {node_ids[2]}")
         else:
-            print(f'节点 {node_ids}在三角形 {triangle_id} 中不等于 3 个。')
             print(f"错误: 三角形 {triangle_id} 不正好有 3 个唯一节点。")
 
     # 生成 mesh 文件内容
-    # 按节点 id 排序
     sorted_nodes = sorted(nodes_dict.values(), key=lambda node: int(node.split()[0]))
- 
     num_nodes = len(sorted_nodes)
     num_triangles = len(triangles)
 
@@ -211,10 +207,79 @@ def Geojson_to_Mesh(geojson_data):
     mesh_content += "\n".join(sorted_nodes) + "\n"  # 按顺序写入节点
     mesh_content += f"{num_triangles} 3 21\n"
     mesh_content += "\n".join(triangles) + "\n"
-    save_mesh_to_file(mesh_content)
+    
+    save_mesh_to_file(mesh_content)  # 保存为 .mesh 文件
     print("成功生成Mesh文件。")
+    
     return mesh_content
-    # 保存为 .mesh 文件
+# 以下为旧版代码
+
+# def Geojson_to_Mesh(geojson_data):
+#     # with open("test.json", 'w') as file:
+#     #         json.dump(geojson_data, file)
+#     nodes_dict = {}  # 用字典保存节点信息，key 为节点 id
+#     triangles = []
+    
+#     # 解析 GeoJSON 中的每个 feature
+#     for feature in geojson_data['features']:
+#         triangle_id = feature['properties']['id']
+#         coordinates = feature['geometry']['coordinates'][0]  # 获取三角形的外环
+#         # 保存正常的features
+#         valid_features = []
+#         # 获取每个点的属性信息
+#         points_properties = feature['properties']['points_properties']
+#         # for feature in geojson_data['features']:
+#         #     coords = feature['geometry']['coordinates'][0]
+#         #     if len(coords) < 4:
+#         #         print(f"Feature {feature['properties']['id']} 的坐标点数量不足。")
+#         #     if len(set(tuple(c) for c in coords[:-1])) < 3:
+#         #         print(f"Feature {feature['properties']['id']} 存在重复点。")
+#         for feature in geojson_data['features']:
+#             coords = feature['geometry']['coordinates'][0]
+#             if len(coords) < 4:
+#                 print(f"Feature {feature['properties']['id']} 的坐标点数量不足，已删除。")
+#                 continue  # 跳过该Feature
+#             if len(set(tuple(c) for c in coords[:-1])) < 3:
+#                 print(f"Feature {feature['properties']['id']} 存在重复点，已删除。")
+#                 continue  # 跳过该Feature
+#             valid_features.append(feature)  # 添加到有效Features列表中
+
+#         # 更新geojson_data中features为有效的features
+#         geojson_data['features'] = valid_features
+#         # 遍历三角形的三个顶点及其属性
+#         node_ids = []
+#         for i, coord in enumerate(coordinates[:-1]):  # 跳过最后一个坐标，因为它是第一个坐标的重复
+#             point = points_properties[i]
+#             node_id = point['id']
+#             depth = point.get('depth', 0)
+#             value = int(point.get('value', 0))
+#             x, y = coord
+#             # 将节点保存到字典，key 是节点 id
+#             nodes_dict[node_id] = f"{node_id} {x:.15f} {y:.15f} {depth:.12f} {value}"
+#             node_ids.append(str(node_id))
+#         # print(f"节点 {node_ids} 构成了三角形 {triangle_id}。")
+#         # 确保每个三角形正好有三个节点
+#         if len(node_ids) == 3:
+#             triangles.append(f"{triangle_id} {node_ids[0]} {node_ids[1]} {node_ids[2]}")
+#         else:
+#             print(f'节点 {node_ids}在三角形 {triangle_id} 中不等于 3 个。')
+#             print(f"错误: 三角形 {triangle_id} 不正好有 3 个唯一节点。")
+
+#     # 生成 mesh 文件内容
+#     # 按节点 id 排序
+#     sorted_nodes = sorted(nodes_dict.values(), key=lambda node: int(node.split()[0]))
+ 
+#     num_nodes = len(sorted_nodes)
+#     num_triangles = len(triangles)
+
+#     mesh_content = f"100079  1000  {num_nodes}  LONG/LAT\n"
+#     mesh_content += "\n".join(sorted_nodes) + "\n"  # 按顺序写入节点
+#     mesh_content += f"{num_triangles} 3 21\n"
+#     mesh_content += "\n".join(triangles) + "\n"
+#     save_mesh_to_file(mesh_content)
+#     print("成功生成Mesh文件。")
+#     return mesh_content
+#     # 保存为 .mesh 文件
 
 def save_mesh_to_file(mesh_content, file_name="./tempfile/output.mesh"):
     with open(file_name, 'w') as file:
