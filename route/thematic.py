@@ -14,6 +14,7 @@ def thematic_routes(app):
     def redraw_thematic():
         
         data = request.get_json()
+        print(data)
         # 获取工程id
         project_id = data.get('project_id')
         # 获取专题图类型
@@ -29,7 +30,7 @@ def thematic_routes(app):
         if thematic_type =='mesh_coastline':
         # 读取thematic_configs中所有的参数
             water_nc_path = thematic_configs.get('water_nc_path')
-            costaline = thematic_configs.get('costaline')
+            costaline = thematic_configs.get('costaline') or f'./tempfile/coastline.npz'
             png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
             # 获取tri_linewidth，如果为空，则默认设置为0.05
             tri_linewidth = thematic_configs.get('tri_linewidth') or 0.05

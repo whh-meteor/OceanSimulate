@@ -20,9 +20,28 @@ import json
 import os
 import uuid
 import configparser
-# 从配置文件加载大文件路径
+import sys
+import argparse
+def get_config_path():
+    # 使用命令行参数指定配置文件路径
+    parser = argparse.ArgumentParser(description="My application")
+    parser.add_argument('--config', type=str, help='Path to the configuration file')
+    args = parser.parse_args()
+
+    # 如果指定了配置文件路径，则返回该路径，否则返回默认路径
+    if args.config:
+        print(f"------使用配置文件: {args.config}------")
+        return args.config
+    else:
+        print(f"------默认配置文件: '../config.ini'------")
+        return './config.ini'
 config = configparser.ConfigParser()
-config.read('./config.ini')  # 配置文件为 config.ini
+config_file_path = get_config_path()
+# 从配置文件加载大文件路径
+# config = configparser.ConfigParser()
+# config.read('./config.ini')  # 配置文件为 config.ini
+# 读取配置文件
+config.read(config_file_path)
 Global_CostaLines = config['Files']['Global_CostaLines'] # 全球岸线数据
 Global_DEM = config['Files']['Global_DEM'] # 全球DEM数据
 ERA5_Wind = config['Files']['ERA5_Wind'] # ERA5风场数据

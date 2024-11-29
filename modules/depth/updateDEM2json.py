@@ -107,7 +107,20 @@ def convert_numpy_types(data):
 
 
 def updateDepth(dem_file,geojson_data,output_file,output_dem_file):
-        
+    print("GDAL version:", gdal.__version__)
+        # 检查 GDAL 是否加载了 netCDF 驱动
+    drivers = gdal.GetDriverCount()
+
+    # 遍历所有驱动并查找 netCDF 驱动
+    for i in range(drivers):
+        driver = gdal.GetDriver(i)
+        print(driver.ShortName)  # 打印所有支持的驱动格式
+
+    # 检查是否包含 netCDF 驱动
+    if "netCDF" in [gdal.GetDriver(i).ShortName for i in range(drivers)]:
+        print("GDAL supports netCDF format")
+    else:
+        print("GDAL does not support netCDF format")
     # # 示例使用
     # dem_file = r'F:\Desktop\【LTGK】海洋一所\240531084643LTX\1开发域-2022\3编码实现\后端\Python-Flask\static\dem\topo15.grd'
     # geojson_file = r'F:\Desktop\【LTGK】海洋一所\240531084643LTX\1开发域-2022\3编码实现\后端\Python-Flask\static\dem\mesh.json'
