@@ -150,8 +150,8 @@ def Mesh_nodes_to_Triangle_Json(mesh):
         print("No nodes or triangles found.")
 
 def Geojson_to_Mesh(geojson_data):
-    with open("test.json", 'w') as file:
-            json.dump(geojson_data, file)
+    # with open("test.json", 'w') as file:
+    #         json.dump(geojson_data, file)
     nodes_dict = {}  # 用字典保存节点信息，key 为节点 id
     triangles = []
     
@@ -212,7 +212,7 @@ def Geojson_to_Mesh(geojson_data):
     mesh_content += f"{num_triangles} 3 21\n"
     mesh_content += "\n".join(triangles) + "\n"
     save_mesh_to_file(mesh_content)
-    
+    print("成功生成Mesh文件。")
     return mesh_content
     # 保存为 .mesh 文件
 

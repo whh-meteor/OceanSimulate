@@ -3,7 +3,7 @@ from netCDF4 import Dataset
 
 def make_obc_nc(iint, time, obc_nodes, elevation):
     # 创建一个 NetCDF 文件，指定为 NetCDF3 格式
-    file_path = 'julian_obc.nc'
+    file_path = '../../tempfile/julian_obc.nc'
     nc = Dataset(file_path, 'w', format='NETCDF3_CLASSIC')
     # 定义全局属性
     nc.title = 'Boundary conditions'

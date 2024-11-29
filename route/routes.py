@@ -25,6 +25,7 @@ config = configparser.ConfigParser()
 config.read('./config.ini')  # 配置文件为 config.ini
 Global_CostaLines = config['Files']['Global_CostaLines'] # 全球岸线数据
 Global_DEM = config['Files']['Global_DEM'] # 全球DEM数据
+ERA5_Wind = config['Files']['ERA5_Wind'] # ERA5风场数据
 def init_routes(app):
     CORS(app, resources=r'/*')
     # CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
@@ -240,7 +241,7 @@ def init_routes(app):
     def gen_windnc():
         # 从请求中解析GeoJSON和步长参数
         data = request.get_json()
-        print(data)
+        # print(data)
         # 从JSON中获取GeoJSON对象
         geojson = data.get('mesh_geojson')
         mesh_bbox = data.get('mesh_bbox')
@@ -275,7 +276,7 @@ def init_routes(app):
                 end_time,
                 time_step,
                 geojson,
-                './static/wind/UV010P202001.nc',
+               ERA5_Wind,# 风场文件
                 temp_clip_nc,
                 nc_file_path,  # 将重复的文件路径变量合并
                 temp_wind_Iint2,
@@ -297,8 +298,28 @@ def init_routes(app):
         except Exception as e:
             return jsonify({'error': '发生未知错误: ' + str(e)}), 500
         delete_files( temp_clip_nc,temp_wind_Iint2, temp_wind_Time2, temp_uwind, temp_vwind, temp_nodes, temp_cells)
+        print (nc)
         return jsonify({'data': nc,'success': True}), 200
-        return send_file(nc, as_attachment=True)
+        # return send_file(nc, as_attachment=True)
+    #获取nc文件
+    @app.route('/get-windnc/<id>/<name>', methods=['GET'])
+    def get_windnc(id,name):
+        if id is None:
+             return jsonify({'error': 'id is required'}), 400
+        if name is None:
+            return jsonify({'error': 'nc_path is required'}), 400
+        # 调用函数返回文件数据
+        try:
+            path = f"./tempfile/wind/{name}"
+            with open(path, 'rb') as f:
+                nc_data = f.read()
+            return send_file(BytesIO(nc_data), as_attachment=True, download_name=os.path.basename(name),
+                                mimetype='application/octet-stream')
+        except FileNotFoundError as fnf_error:
+            return jsonify({'error': str(fnf_error)}), 404
+        except Exception as e:
+            return jsonify({'error': '发生未知错误: ' + str(e)}), 500
+            
     ####=======================MESH网格部分=====================================####
     # 上传网格
     @app.route('/uploadMesh', methods=['GET', 'POST'])
@@ -341,13 +362,22 @@ def init_routes(app):
         # 获取 JSON 数据
         data = request.get_json()
         
-        geoJson1 = data.get('geojson')
-        # print(geoJson1)
+        geojson = data.get('geojson')
+        # print(geoJson)
         # geoJson2 = data.get('geoJson2')
-        if geoJson1 is None:
+        if geojson is None:
             return jsonify({"error": "Missing nets in request data."}), 400
+        
+        # # 确保 'features' 的每个元素的 'points_properties' 是列表，然后转换为字符串
+        for feature in geojson['features']:
+            if isinstance(feature['properties']['points_properties'], list):
+                feature['properties']['points_properties'] = json.dumps(feature['properties']['points_properties'])
+        print(type(geojson['features'][0]['properties']['points_properties'])) #<class 'list'>
+        depth_file = f'./tempfile/mesh_depth_{uuid.uuid4()}.json'
+        dem_file = f'./tempfile/dem_{uuid.uuid4()}.tif'
+        geojson= updateDepth(Global_DEM,geojson,depth_file, dem_file )  
         # 调用处理函数（替换为您的实际逻辑）
-        mesh_file_content = Geojson_to_Mesh(geoJson1)
+        mesh_file_content = Geojson_to_Mesh(geojson)
         # 重排索引
         mesh_file_content  = reindex_mesh_nofile(mesh_file_content)
         # 创建一个 in-memory 字节流来保存生成的 mesh 文件
