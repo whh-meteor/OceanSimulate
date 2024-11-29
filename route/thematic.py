@@ -19,7 +19,8 @@ def thematic_routes(app):
         project_id = data.get('project_id')
         # 获取专题图类型
         thematic_type = data.get('thematic_type')
-        thematic_name = data.get('thematic_name')
+        # thematic_name = data.get('thematic_name')
+        thematic_name = str(uuid.uuid4()) + '.png'
         # 获取专题图配置参数
         thematic_configs= data.get('thematic_configs')
         allType = ['mesh_coastline','amplitude', 'flow', 'flow_nodepth', 'flow_tide', 'griddepth', 'lagtrack']
@@ -54,8 +55,22 @@ def thematic_routes(app):
                 lat_min=lat_min, # 纬度最小值
                 lat_max=lat_max, # 纬度最大值
                 dpi=dpi,  # 输出分辨率
+                png_name=thematic_name # 输出文件名
             )
-            image_path = f"./tempfile/{project_id}/png/{thematic_type}/{thematic_name}"
-            return send_file(image_path, mimetype='image/png')
+            # image_path = f"./tempfile/{project_id}/png/{thematic_type}/{thematic_name}"
+            image_path = f"./tempfile/{project_id}/png/{thematic_type}/"
+            image_files = list_images_in_directory(image_path)
+            return jsonify({'data': image_files,'success': True}), 200
+            # return send_file(image_path, mimetype='image/png')
         
-       
+    def list_images_in_directory(directory):
+        """遍历目录及其子目录，列出所有图片文件的相对路径。"""
+        image_files = []
+        for root, dirs, files in os.walk(directory):
+            for filename in files:
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                    image_path = os.path.join(root, filename)
+                    relative_path = os.path.relpath(image_path, directory)
+                    normalized_path = relative_path.replace("\\", "/")  # 替换反斜杠为正斜杠
+                    image_files.append(normalized_path)
+        return image_files

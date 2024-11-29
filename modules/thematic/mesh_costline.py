@@ -11,7 +11,7 @@ from modules.thematic.common import *
 # -----------------------------
 # 解析nc数据，提取岸线和网格函数
 # -----------------------------
-def mesh_costline(filepath, costline_path, png_path,tri_linewidth=0.05,costa_linewidth=1.0,lon_min=None, lon_max=None, lat_min=None, lat_max=None, dpi=300):
+def mesh_costline(filepath, costline_path, png_path,tri_linewidth=0.05,costa_linewidth=1.0,lon_min=None, lon_max=None, lat_min=None, lat_max=None, dpi=300,png_name = 'grid_costline.png'):
     """
     解析 NetCDF 数据，提取岸线和网格，并生成三角网格图形。
 
@@ -73,7 +73,7 @@ def mesh_costline(filepath, costline_path, png_path,tri_linewidth=0.05,costa_lin
         ax.set_ylim(ylim[0], ylim[1])
 
     # 保存图像为 PNG 文件
-    plt.savefig(png_path + '/mesh_coastline/grid_coastline.png', format='png', dpi=dpi, bbox_inches='tight')
+    plt.savefig(png_path + '/mesh_coastline/' + png_name , format='png', dpi=dpi, bbox_inches='tight')
     
     # 关闭文件和清理变量
     nf.close()
