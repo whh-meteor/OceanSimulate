@@ -523,7 +523,16 @@ def erase_geojson_with_shp_gdal(geojson_data, shp_file, output_shp_file):
     return output_shp_file
 
 import geopandas as gpd
+import geopandas as gpd
+from shapely.geometry import Polygon
 
+import geopandas as gpd
+from shapely.geometry import Polygon
+ 
+import geopandas as gpd
+from shapely.geometry import Polygon
+
+ 
 
 def erase_geojson_with_shp_geopandas(geojson_data, shp_file, output_shp_file):
     """
@@ -560,10 +569,11 @@ def erase_geojson_with_shp_geopandas(geojson_data, shp_file, output_shp_file):
     # 使用 GeoPandas 的 overlay 进行擦除操作
     gdf_erased = gpd.overlay(gdf_geojson, gdf_shp, how='difference')
 
-    # 将结果保存为 Shapefile
-    gdf_erased.to_file(output_shp_file, driver='ESRI Shapefile')
+    # # 将结果保存为 Shapefile
+    # gdf_erased.to_file(output_shp_file, driver='ESRI Shapefile')
 
-    return output_shp_file
+    # return output_shp_file
+    return gdf_erased.__geo_interface__
 
 import geopandas as gpd
 def shp_to_geojson_with_geopandas(shp_file):
@@ -620,7 +630,11 @@ import geopandas as gpd
 from shapely.geometry import box
  
 import pandas as pd
- 
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
+import shapely.ops as ops
+
+
 def erase_geojson_with_shp(bbox,geojson_data, shp_file, output_shp_path):
     """
     优化版：先根据渤海范围裁剪 Shapefile，然后使用裁剪后的 Shapefile 与 GeoJSON 相交。
@@ -682,8 +696,8 @@ def erase_geojson_with_shp(bbox,geojson_data, shp_file, output_shp_path):
     if gdf_non_intersecting.crs is None:
         gdf_non_intersecting.set_crs(epsg=4326, inplace=True)
 
-    # 将结果保存为 Shapefile
-    gdf_non_intersecting.to_file(output_shp_path, driver='ESRI Shapefile')
+    # # 将结果保存为 Shapefile
+    # gdf_non_intersecting.to_file(output_shp_path, driver='ESRI Shapefile')
     
     # 返回 Shapefile 文件的路径
     # return output_shp_path

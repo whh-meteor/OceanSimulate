@@ -33,8 +33,9 @@ def init_routes(app):
     @app.route('/')
     ####=======================测试部分=====================================####
     def index():
-       mesh =  geojson_to_mesh("F:/Desktop/测试/索引1-正确.json" ,f"./tempfile/json2mesh测试-{uuid.uuid4()}")
-       return mesh, 200
+        return 'Hello, World!'
+    #    mesh =  geojson_to_mesh("F:/Desktop/测试/索引1-正确.json" ,f"./tempfile/json2mesh测试-{uuid.uuid4()}")
+    #    return mesh, 200
         # geojson3 = {}
         # mesh_file_content = Geojson_to_Mesh(geojson3)
         
@@ -417,8 +418,9 @@ def init_routes(app):
         # 调用生成 mesh 的函数
         
         clip_temp_file = f"./tempfile/ClipArea2Mesh__{uuid.uuid4()}"
-        shpPath = erase_geojson_with_shp_geopandas(geojson,Global_CostaLines,clip_temp_file+".shp")
-        geojson =  shp_to_geojson_with_geopandas(shpPath)
+        # shpPath = erase_geojson_with_shp_geopandas(geojson,Global_CostaLines,clip_temp_file+".shp")
+        # geojson =  shp_to_geojson_with_geopandas(shpPath)
+        geojson =  erase_geojson_with_shp_geopandas(geojson,Global_CostaLines,clip_temp_file+".shp")
         # 删除临时文件
         delete_files( clip_temp_file+ ".shp",
                      clip_temp_file+ ".cpg",
