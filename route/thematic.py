@@ -103,6 +103,7 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'flow':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             inter = thematic_configs.get('inter') or 10  # 采样间隔
@@ -155,6 +156,7 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'flow_nodepth':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             inter = thematic_configs.get('inter') or 10  # 采样间隔
@@ -207,6 +209,7 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'flow_tide':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             lon_stn = ast.literal_eval(thematic_configs.get('lon_stn')) or [450500, 451500]  # 观测站经度序列
@@ -231,6 +234,7 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'griddepth':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             tri_linewidth = thematic_configs.get('tri_linewidth') or 0.3
@@ -258,7 +262,7 @@ def thematic_routes(app):
         # 拉格朗日粒子追踪专题图制作
         # -----------------------------
         elif thematic_type == 'lagtrack':
-            
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
             lag_nc_path = thematic_configs.get('lag_nc_path') #必填
             lag_index = thematic_configs.get('lag_index') or 0
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
@@ -275,6 +279,7 @@ def thematic_routes(app):
         # 污染物扩散专题图制作
         # -----------------------------
         elif thematic_type == 'pollutant':
+             
             pollutant_nc_path = thematic_configs.get('pollutant_nc_path') #必填
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置

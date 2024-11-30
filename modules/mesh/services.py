@@ -208,7 +208,7 @@ def Geojson_to_Mesh(geojson_data):
     mesh_content += f"{num_triangles} 3 21\n"
     mesh_content += "\n".join(triangles) + "\n"
     
-    save_mesh_to_file(mesh_content)  # 保存为 .mesh 文件
+    # save_mesh_to_file(mesh_content)  # 保存为 .mesh 文件
     print("成功生成Mesh文件。")
     
     return mesh_content
@@ -281,7 +281,7 @@ def Geojson_to_Mesh(geojson_data):
 #     return mesh_content
 #     # 保存为 .mesh 文件
 
-def save_mesh_to_file(mesh_content, file_name="./tempfile/output.mesh"):
+def save_mesh_to_file(mesh_content, file_name="./output.mesh"): # 测试时才会使用
     with open(file_name, 'w') as file:
         file.write(mesh_content)
 import os
