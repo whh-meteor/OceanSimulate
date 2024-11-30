@@ -21,20 +21,8 @@ import os
 import uuid
 import configparser
 import sys
-import argparse
-def get_config_path():
-    # 使用命令行参数指定配置文件路径
-    parser = argparse.ArgumentParser(description="My application")
-    parser.add_argument('--config', type=str, help='Path to the configuration file')
-    args = parser.parse_args()
+from utils.config import get_config_path
 
-    # 如果指定了配置文件路径，则返回该路径，否则返回默认路径
-    if args.config:
-        print(f"------使用配置文件: {args.config}------")
-        return args.config
-    else:
-        print(f"------默认配置文件: '../config.ini'------")
-        return './config.ini'
 config = configparser.ConfigParser()
 config_file_path = get_config_path()
 # 从配置文件加载大文件路径
@@ -160,11 +148,13 @@ def init_routes(app):
                 if not os.path.exists(sub_dir_path):
                     os.makedirs(sub_dir_path)
             # 根据结果nc文件生成全部的图片
+            temp_costaline_npz =  f'./tempfile/{projectid}/coastline.npz'
+            temp_tide_npz =  f'./tempfile/{projectid}/tide_analysis.npz'
             get_coastline_from_npz("./static/pltf/pltf_0002.nc", # 水动力网格文件路径
                             "./static/pltf/ezwssc_0001.nc",# 污染物nc文件路径
                             "./static/pltf/lagnc_lagtra.nc", # 粒子追踪文件路径
-                            "./tempfile/coastline.npz",
-                            "./tempfile/tide_analysis.npz",
+                            temp_costaline_npz,
+                            temp_tide_npz,
                             image_dir)
              
             image_files = list_images_in_directory(image_dir)

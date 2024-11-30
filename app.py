@@ -7,17 +7,25 @@ import rasterio.sample, fiona, pyogrio._vsi ,pyogrio._geometry
 
 print(rasterio.sample,fiona ,pyogrio._vsi,pyogrio._geometry)
 app = Flask(__name__)
+from utils.config import get_config_path
+import configparser
+config = configparser.ConfigParser()
+config_file_path = get_config_path()
+
+config.read(config_file_path)
 
 # 初始化路由
 init_routes(app)
 thematic_routes(app)
 if os.name == 'nt':  # Windows
-    app.config['activate_path'] = 'D:\\anaconda3\\Scripts\\activate.bat oceanmesh2d'
-    app.config['gmsh_path'] = 'D:\\anaconda3\\envs\\oceanmesh2d\\Scripts\\gmsh'
+    app.config['activate_path'] = config['NT_Gmsh']['activate_path']
+    app.config['gmsh_path'] = config['NT_Gmsh']['gmsh_path']
+    # app.config['activate_path'] = 'D:\\anaconda3\\Scripts\\activate.bat oceanmesh2d'
+    # app.config['gmsh_path'] = 'D:\\anaconda3\\envs\\oceanmesh2d\\Scripts\\gmsh'
       
 else:  # Linux/Unix
-    app.config['activate_path'] =  '/home/zzc/anaconda3/bin/activate'
-    app.config['gmsh_path'] =  '/home/zzc/anaconda3/envs/oceanmesh2d/bin/gmsh'
+    app.config['activate_path'] = config['Linux_Gmsh']['activate_path']
+    app.config['gmsh_path'] = config['Linux_Gmsh']['gmsh_path']
       
 
 

@@ -16,7 +16,8 @@ def plot_tide_analysis(tide_path,
                         lon_max=None, 
                         lat_min=None, 
                         lat_max=None,
-                        dpi=300
+                        dpi=300,
+                        png_name='tideAnalysis'
                        ):
     
   # 加载调和常数数据
@@ -96,6 +97,6 @@ def plot_tide_analysis(tide_path,
       strtide = tide_name[n]  # 获取当前潮汐成分的名称
       strtitle = 'cotidal map: %s (cm)' % strtide  # 设置图形标题
       plt.title(strtitle)  # 添加图形标题
-      strname = pngpath+'amplitude/cotidal_%s.png' % strtide  # 设置保存的文件名
-      plt.savefig(strname)  # 保存图形为 PNG 文件
+      strname = pngpath+'amplitude/'+strtide+'_'+png_name+'.png'  # 设置保存的文件名
+      plt.savefig(strname ,dpi =dpi)  # 保存图形为 PNG 文件
       print("03脚本：振幅和相位等值线生成完成---"+strname)

@@ -9,7 +9,7 @@ import numpy as np
 # -----------------------------
 # 绘制网格水深函数
 # ----------------------------- 
-def plot_depth(nc_path, costaline_path, png_path, tri_linewidth=0.3, lon_min=None, lon_max=None, lat_min=None, lat_max=None, dpi=300):
+def plot_depth(nc_path, costaline_path, png_path, tri_linewidth=0.3, lon_min=None, lon_max=None, lat_min=None, lat_max=None, dpi=300,png_name='griddepth'):
     """
     绘制网格和水深图，并保存为 PNG 文件。
 
@@ -72,7 +72,7 @@ def plot_depth(nc_path, costaline_path, png_path, tri_linewidth=0.3, lon_min=Non
     plt.title('depth (m)')
  
 
-    plt.savefig(png_path+'/griddepth/grid.png',dpi=dpi)
+    plt.savefig(png_path+'/griddepth/'+png_name+'.png',dpi=dpi)
 
     # plt.show()
 

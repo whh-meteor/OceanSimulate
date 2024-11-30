@@ -11,12 +11,12 @@ import ezdxf
 class DyeConcentrationPlotter:
     def __init__(self, lon_min, lon_max, lat_min, lat_max, dlon, dlat,  time_index=99,siglay_index=0, 
                  nc_file='ezwssc_0001.nc', output_dir='kuosan',levels=None, lon_col='x', lat_col='y', nv_col='nv', dye_col='ssc',
-                 contour_color='k', contour_linewidth=0.5): 
+                 contour_color='k', contour_linewidth=0.5,dpi=300,png_name='dye_concentration'): 
                 # 打印传入的参数，确保它们正确传递
         print(f"Initializing DyeConcentrationPlotter with the following parameters:")
         print(f"lon_min: {lon_min}, lon_max: {lon_max}, lat_min: {lat_min}, lat_max: {lat_max}")
         print(f"dlon: {dlon}, dlat: {dlat}, levels: {levels}, time_index: {time_index}, siglay_index: {siglay_index}")
-        print(f"nc_file: {nc_file}, output_dir: {output_dir}")
+        print(f"nc_file: {nc_file}, output_dir: {output_dir}",f"png_name: {png_name}")
 
         """
         初始化函数，所有参数可以通过调用时传递。
@@ -38,6 +38,7 @@ class DyeConcentrationPlotter:
         :param dye_col: 污染物浓度变量名
         :param contour_color: 等值线颜色
         :param contour_linewidth: 等值线线宽
+        :param png_name: 输出PNG文件名
         """
         self.lon_min = lon_min
         self.lon_max = lon_max
@@ -56,6 +57,8 @@ class DyeConcentrationPlotter:
         self.dye_col = dye_col
         self.contour_color = contour_color
         self.contour_linewidth = contour_linewidth
+        self.png_name = png_name
+        self.dpi = dpi
         print('初始化完成self.nc_file = '+self.nc_file)
         print('初始化完成self.nc_file = '+self.output_dir)
         # 创建输出目录
@@ -112,8 +115,8 @@ class DyeConcentrationPlotter:
 
         # 保存PNG文件
         # output_path = os.path.join(self.output_dir, f'dye_concentration_{self.time_index+1}.png')
-        print(self.output_dir+'/pollutant.png')
-        plt.savefig(self.output_dir+f'pollutant/pollutant_{self.time_index+1}.png', dpi=1000)
+        # print(self.output_dir+'/pollutant.png')
+        plt.savefig(self.output_dir+f'pollutant/{self.png_name}_{self.time_index+1}.png', dpi=self.dpi)
         # plt.savefig(output_path)
         # plt.show()
 
@@ -136,7 +139,7 @@ class DyeConcentrationPlotter:
                     msp.add_lwpolyline(points, close=True)  # 添加为多段线，close=False 表示不封闭
 
         # 保存DXF文件
-        dxf_output_path = os.path.join(self.output_dir, f'pollutant/dye_concentration_{self.time_index+1}.dxf')
+        dxf_output_path = os.path.join(self.output_dir, f'pollutant/{self.png_name}_{self.time_index+1}.dxf')
         doc.saveas(dxf_output_path)
          
 
@@ -152,10 +155,12 @@ def pollutantDispersion(
         dlon=740000, 
         dlat=4285750,
         time_index=88,
-        siglay_index= 2
+        siglay_index= 2,
+        dpi=300,
+        png_name='dye_concentration',
         ):
      print("开始污染物扩散:"+nc_file)
-     plotter =DyeConcentrationPlotter(lon_min, lon_max, lat_min, lat_max,dlon, dlat, time_index,siglay_index,nc_file, output_dir)
+     plotter =DyeConcentrationPlotter(lon_min, lon_max, lat_min, lat_max,dlon, dlat, time_index,siglay_index,nc_file, output_dir,dpi,png_name)
      plotter.plot()
      print("污染物扩散完成")
 
