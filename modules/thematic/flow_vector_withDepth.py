@@ -118,7 +118,7 @@ def flow_vector_withDepth(nc_path, costline_path, png_path, inter=10, time_range
         ax.xaxis.set_major_locator(MaxNLocator(integer=True, prune=None, nbins=5))  # nbins 控制最多显示的刻度数量
  
         # 保存为 PNG 文件
-        strfile = os.path.join(png_path, f"flow/flow_{png_name+tind:04d}.png")
+        strfile = os.path.join(png_path, f"flow/flow_{png_name}+{str(tind)}.png")
         plt.savefig(strfile, dpi=dpi)
         plt.close()  # 关闭图形，避免内存占用过多
         print(f"Flow vector plot saved: {strfile}")
