@@ -33,6 +33,7 @@ config.read(config_file_path)
 Global_CostaLines = config['Files']['Global_CostaLines'] # 全球岸线数据
 Global_DEM = config['Files']['Global_DEM'] # 全球DEM数据
 ERA5_Wind = config['Files']['ERA5_Wind'] # ERA5风场数据
+ 
 def init_routes(app):
     CORS(app, resources=r'/*')
     # CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
@@ -40,25 +41,9 @@ def init_routes(app):
     @app.route('/')
     ####=======================测试部分=====================================####
     def index():
-        return 'Hello, World!'
-    #    mesh =  geojson_to_mesh("F:/Desktop/测试/索引1-正确.json" ,f"./tempfile/json2mesh测试-{uuid.uuid4()}")
-    #    return mesh, 200
-        # geojson3 = {}
-        # mesh_file_content = Geojson_to_Mesh(geojson3)
         
-        # mesh_reindex  = reindex_mesh_nofile(mesh_file_content)
-        # # # 岸线赋值
-        # tempfile = f"./tempfile/临时mesh-bh.mesh"
-        # with open(tempfile,'w') as f:
-        #     f.write(mesh_reindex)
-        # geojson5= Mesh_nodes_to_Triangle_Json("F:/Desktop/测试/索引2-mesh.mesh")
-        # tempfile = f"F:/Desktop/测试/索引2-mesh转json.json"
-        # with open(tempfile,'w') as f:
-        #     json.dump(geojson5,f)
-        # geojson6 = extra_bd_attr(geojson5)
-        # delete_files(tempfile)
-        # 返回生成的 .mesh 文件内容
-        # return jsonify(geojson), 200
+        return app.config['TEMP_DIR'] 
+   
     def geojson_to_mesh(geojson_file, mesh_file):
         with open(geojson_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -136,7 +121,7 @@ def init_routes(app):
 
         print("工程id："+projectid)
  
-        image_dir = f'./tempfile/{projectid}/png/'
+        image_dir = app.config['TEMP_DIR']+f'/{projectid}/png/'
 
         # 判断文件夹是否存在，如果不存在则创建
         if not os.path.exists(image_dir):
@@ -148,8 +133,8 @@ def init_routes(app):
                 if not os.path.exists(sub_dir_path):
                     os.makedirs(sub_dir_path)
             # 根据结果nc文件生成全部的图片
-            temp_costaline_npz =  f'./tempfile/{projectid}/coastline.npz'
-            temp_tide_npz =  f'./tempfile/{projectid}/tide_analysis.npz'
+            temp_costaline_npz =  app.config['TEMP_DIR']+f'/{projectid}/coastline.npz'
+            temp_tide_npz =  app.config['TEMP_DIR']+f'/{projectid}/tide_analysis.npz'
             get_coastline_from_npz("./static/pltf/pltf_0002.nc", # 水动力网格文件路径
                             "./static/pltf/ezwssc_0001.nc",# 污染物nc文件路径
                             "./static/pltf/lagnc_lagtra.nc", # 粒子追踪文件路径
@@ -163,8 +148,8 @@ def init_routes(app):
             # get_coastline_from_npz("./static/pltf/pltf_0002.nc", # 水动力网格文件路径
             #     "./static/pltf/ezwssc_0001.nc",# 污染物nc文件路径
             #     "./static/pltf/lagnc_lagtra.nc", # 粒子追踪文件路径
-            #     "./tempfile/coastline.npz",
-            #     "./tempfile/tide_analysis.npz",
+            #     app.config['TEMP_DIR'] +"/coastline.npz",
+            #     app.config['TEMP_DIR'] +"/tide_analysis.npz",
             #     image_dir)
                     # 列出目录下所有图片文件
             image_files = list_images_in_directory(image_dir)
@@ -199,7 +184,7 @@ def init_routes(app):
     @app.route('/get-img/<id>/<type>/<filename>')
     def get_maps(id,type,filename):
         # 构建图片的完整路径
-        image_path = f"./tempfile/{id}/png/{type}/{filename}"
+        image_path = app.config['TEMP_DIR']+f"/{id}/png/{type}/{filename}"
         # 如果图片不存在，则生成图片
         if not os.path.exists(image_path):
             return  jsonify({'data': "未找到图片",'success': False}), 404
@@ -215,13 +200,13 @@ def init_routes(app):
         # geojson = data.get('time_index')
         # geojson  =get_pltf_points("./static/pltf/pltf_0002.nc", 100, 0  )
 
-        # jsonfile = f"./tempfile/geojson_{uuid.uuid4()}.json"
+        # jsonfile = app.config['TEMP_DIR']+f"/geojson_{uuid.uuid4()}.json"
         # with open(jsonfile, 'w') as f:   
         #     json.dump(geojson, f)
-        png,bbox = png_from_uv(0,100,'200*200','./tempfile/wave.png','./static/pltf/pltf_0002.nc')
+        png,bbox = png_from_uv(0,100,'200*200',app.config['TEMP_DIR'] +'/wave.png','./static/pltf/pltf_0002.nc')
         # return jsonify(geojson),200
  
-        return send_file('./tempfile/wave.png', mimetype='image/png')
+        return send_file(app.config['TEMP_DIR'] +'/wave.png', mimetype='image/png')
         # return jsonify( {"data":geojson,"bbox":bbox,"png":png,"timeList":list,"success":True}), 200
     # 获取时间信息
     @app.route('/get-nc-time', methods=['GET', 'POST'])
@@ -243,7 +228,7 @@ def init_routes(app):
             return jsonify({'error': 'GeoJSON is required'}), 400
  
         # 调用更新水深 的函数
-        geojson= updateDepth(Global_DEM,geojson,'./tempfile/mesh_depth.json', "./tempfile/dem.tif" )
+        geojson= updateDepth(Global_DEM,geojson,app.config['TEMP_DIR'] +'/mesh_depth.json', app.config['TEMP_DIR'] +"/dem.tif" )
         # 返回生成的 .mesh 文件内容
         return jsonify({'data': geojson,'success': True}), 200
     ####===========================风场部分=====================================####
@@ -271,14 +256,14 @@ def init_routes(app):
             if not all([mesh_bbox, start_time, end_time, time_step, geojson]):
                 raise ValueError("缺少必要的参数：mesh_bbox, start_time, end_time, time_step, geojson")
 
-            nc_file_path = f'./tempfile/wind/wind_{uuid.uuid4()}.nc' # 结果文件
-            temp_clip_nc = f"./tempfile/clip_{uuid.uuid4()}.nc"
-            temp_wind_Iint2 = f"./tempfile/wind_Iint2_{uuid.uuid4()}.txt"
-            temp_wind_Time2= f"./tempfile/wind_Time2_{uuid.uuid4()}.txt"
-            temp_uwind = f"./tempfile/uwind_{uuid.uuid4()}.txt"
-            temp_vwind = f"./tempfile/vwind_{uuid.uuid4()}.txt"
-            temp_nodes = f"./tempfile/nodes_{uuid.uuid4()}.xlsx"
-            temp_cells = f"./tempfile/cells_{uuid.uuid4()}.xlsx"
+            nc_file_path = app.config['TEMP_DIR']+f'/wind/wind_{uuid.uuid4()}.nc' # 结果文件
+            temp_clip_nc = app.config['TEMP_DIR']+f"/clip_{uuid.uuid4()}.nc"
+            temp_wind_Iint2 = app.config['TEMP_DIR']+f"/wind_Iint2_{uuid.uuid4()}.txt"
+            temp_wind_Time2= app.config['TEMP_DIR']+f"/wind_Time2_{uuid.uuid4()}.txt"
+            temp_uwind = app.config['TEMP_DIR']+f"/uwind_{uuid.uuid4()}.txt"
+            temp_vwind = app.config['TEMP_DIR']+f"/vwind_{uuid.uuid4()}.txt"
+            temp_nodes = app.config['TEMP_DIR']+f"/nodes_{uuid.uuid4()}.xlsx"
+            temp_cells = app.config['TEMP_DIR']+f"/cells_{uuid.uuid4()}.xlsx"
             # 调用函数生成NetCDF文件
             nc = generate_wind_netcdf(
                 mesh_bbox,
@@ -320,7 +305,7 @@ def init_routes(app):
             return jsonify({'error': 'nc_path is required'}), 400
         # 调用函数返回文件数据
         try:
-            path = f"./tempfile/wind/{name}"
+            path = app.config['TEMP_DIR']+f"/wind/{name}"
             with open(path, 'rb') as f:
                 nc_data = f.read()
             return send_file(BytesIO(nc_data), as_attachment=True, download_name=os.path.basename(name),
@@ -354,9 +339,9 @@ def init_routes(app):
                     return jsonify({"message": "One or more files have no name"}), 400
 
                 filename = secure_filename(file.filename)
-                file.save(f"F:/Desktop/【LTGK】海洋一所/【Demo】/Python-Flask/tempfile/{filename}")
+                file.save(app.config['TEMP_DIR'] +f"/{filename}")
                 saved_files.append(filename)
-                geojson=Mesh_nodes_to_Triangle_Json(f"F:/Desktop/【LTGK】海洋一所/【Demo】/Python-Flask/tempfile/{filename}")
+                geojson=Mesh_nodes_to_Triangle_Json(app.config['TEMP_DIR'] +f"/{filename}")
 
             return jsonify({"message": "Files uploaded successfully", "files": saved_files,"geojson":geojson}), 200
 
@@ -383,8 +368,8 @@ def init_routes(app):
             if isinstance(feature['properties']['points_properties'], list):
                 feature['properties']['points_properties'] = json.dumps(feature['properties']['points_properties'])
         print(type(geojson['features'][0]['properties']['points_properties'])) #<class 'list'>
-        depth_file = f'./tempfile/mesh_depth_{uuid.uuid4()}.json'
-        dem_file = f'./tempfile/dem_{uuid.uuid4()}.tif'
+        depth_file = app.config['TEMP_DIR']+f'/mesh_depth_{uuid.uuid4()}.json'
+        dem_file = app.config['TEMP_DIR']+f'/dem_{uuid.uuid4()}.tif'
         geojson= updateDepth(Global_DEM,geojson,depth_file, dem_file )  
         # 调用处理函数（替换为您的实际逻辑）
         mesh_file_content = Geojson_to_Mesh(geojson)
@@ -393,7 +378,7 @@ def init_routes(app):
         # 创建一个 in-memory 字节流来保存生成的 mesh 文件
         mesh_io = BytesIO(mesh_file_content.encode('utf-8'))
 
-        return send_file(mesh_io, as_attachment=True, download_name='./tempfile/output.mesh', mimetype='text/plain')
+        return send_file(mesh_io, as_attachment=True, download_name=app.config['TEMP_DIR'] +'/output.mesh', mimetype='text/plain')
     #  生成网格
     @app.route('/gen-mesh', methods=['GET', 'POST'])
     def generate2mesh():
@@ -410,7 +395,7 @@ def init_routes(app):
             return jsonify({'error': 'GeoJSON is required'}), 400
         print(mesh_size)
         # 调用生成 mesh 的函数
-        mesh_file_path= GenerateMesh(geojson, mesh_size,"geo.geo","msh.msh","./tempfile/mesh.mesh")
+        mesh_file_path= GenerateMesh(geojson, mesh_size,"geo.geo","msh.msh",app.config['TEMP_DIR'] +"/mesh.mesh")
         geojson =  Mesh_nodes_to_Triangle_Json(mesh_file_path)
         # 返回生成的 .mesh 文件内容
         return jsonify({'data': geojson,'success': True}), 200
@@ -426,7 +411,7 @@ def init_routes(app):
             return jsonify({'error': 'GeoJSON is required'}), 400
         # 调用生成 mesh 的函数
         
-        clip_temp_file = f"./tempfile/ClipArea2Mesh__{uuid.uuid4()}"
+        clip_temp_file = app.config['TEMP_DIR']+f"/ClipArea2Mesh__{uuid.uuid4()}"
         # shpPath = erase_geojson_with_shp_geopandas(geojson,Global_CostaLines,clip_temp_file+".shp")
         # geojson =  shp_to_geojson_with_geopandas(shpPath)
         geojson =  erase_geojson_with_shp_geopandas(geojson,Global_CostaLines,clip_temp_file+".shp")
@@ -449,7 +434,7 @@ def init_routes(app):
         print("网格步长：")
         print(mesh_size)
         # 调用生成 mesh 的函数
-        mesh_file_path= GenerateMesh(geojson, mesh_size,"./tempfile/geo.geo","./tempfile/msh.msh","./tempfile/mesh.mesh")
+        mesh_file_path= GenerateMesh(geojson, mesh_size,app.config['TEMP_DIR'] +"/geo.geo",app.config['TEMP_DIR'] +"/msh.msh",app.config['TEMP_DIR'] +"/mesh.mesh")
         large = get_larger_file_index(mesh_file_path)
         print("最大区域")
         print(large)
@@ -472,7 +457,7 @@ def init_routes(app):
         if geojson is None:
             return jsonify({'error': 'GeoJSON is required'}), 400
         #调用裁剪 mesh 的函数
-        offset_temp_file = f"./tempfile/offsetMesh__{uuid.uuid4()}"
+        offset_temp_file = app.config['TEMP_DIR']+f"/offsetMesh__{uuid.uuid4()}"
         geojson2 =  erase_geojson_with_shp(bbox,geojson, Global_CostaLines, offset_temp_file+".shp")
         # # 删除临时文件
         delete_files( offset_temp_file+ ".shp",
@@ -502,7 +487,7 @@ def init_routes(app):
         if mesh_size is None:
             return jsonify({'error': 'Missing mesh_size in request data.'}), 400
         # 调用加密函数
-        mesh_file_path = refinement_mesh( geojson_data,mesh_size,inner_curve_data)
+        mesh_file_path = refinement_mesh( geojson_data,mesh_size,inner_curve_data,mesh_out_file=app.config['TEMP_DIR'] +f"/加密_{uuid.uuid4() }.mesh")  # 在文件名中添加 UUID)
         mesh_json = Mesh_nodes_to_Triangle_Json(mesh_file_path)
 
         delete_files(mesh_file_path)
@@ -517,14 +502,14 @@ def init_routes(app):
             if isinstance(feature['properties']['points_properties'], list):
                 feature['properties']['points_properties'] = json.dumps(feature['properties']['points_properties'])
         print(type(geojson['features'][0]['properties']['points_properties'])) #<class 'list'>
-        depth_file = f'./tempfile/mesh_depth_{uuid.uuid4()}.json'
-        dem_file = f'./tempfile/dem_{uuid.uuid4()}.tif'
+        depth_file = app.config['TEMP_DIR']+f'/mesh_depth_{uuid.uuid4()}.json'
+        dem_file = app.config['TEMP_DIR']+f'/dem_{uuid.uuid4()}.tif'
         geojson= updateDepth(Global_DEM,geojson,depth_file, dem_file )   
         mesh_file_content = Geojson_to_Mesh(geojson) # json 2 mesh
 
         mesh_file_content  = reindex_mesh_nofile(mesh_file_content)  # 重排索引
         # 保存临时文件
-        tempfile = f"./tempfile/updateDepthAndReindex临时mesh_{uuid.uuid4() }.mesh"
+        tempfile = app.config['TEMP_DIR']+f"/updateDepthAndReindex临时mesh_{uuid.uuid4() }.mesh"
         with open(tempfile,'w') as f:
             f.write(mesh_file_content)
         geojson2= Mesh_nodes_to_Triangle_Json(tempfile) # mesh 2 json
@@ -550,8 +535,8 @@ def init_routes(app):
         if clip_geojson is None or mesh_geojson is None:
             return jsonify({'error': 'GeoJSON is required'}), 400
         # 临时文件
-        temp_cosatalines = './tempfile/clip_temp_costalines_' + str(uuid.uuid4())  
-        temp_shp_clip = './tempfile/clip_temp_bbox_' + str(uuid.uuid4())  
+        temp_cosatalines = app.config['TEMP_DIR'] +'/clip_temp_costalines_' + str(uuid.uuid4())  
+        temp_shp_clip = app.config['TEMP_DIR'] +'/clip_temp_bbox_' + str(uuid.uuid4())  
         from modules.mesh.geojson_obj_to_shpfile import geojson_obj_to_shp
         geojson_obj_to_shp(clip_geojson,temp_cosatalines+".shp")
         geojson_res =  erase_geojson_with_shp(mesh_bbox,mesh_geojson, temp_cosatalines+".shp", temp_shp_clip+".shp")

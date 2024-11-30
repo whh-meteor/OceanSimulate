@@ -9,8 +9,10 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 import ast
 # 专题图制作    
+
 def thematic_routes(app):
     CORS(app, resources=r'/*')
+    app.config['TEMP_DIR'] # 临时文件目录
     @app.route('/redraw_thematic', methods=['GET', 'POST'])
     def redraw_thematic():
         
@@ -34,8 +36,8 @@ def thematic_routes(app):
         if thematic_type =='mesh_coastline':
         # 读取thematic_configs中所有的参数
             water_nc_path = thematic_configs.get('water_nc_path') #必填
-            costaline = thematic_configs.get('costaline') or f'./tempfile/{project_id}/coastline.npz'
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             tri_linewidth = thematic_configs.get('tri_linewidth') or 0.05
             costa_linewidth = thematic_configs.get('costa_linewidth')or 1.0
@@ -61,7 +63,7 @@ def thematic_routes(app):
                 png_name=thematic_name # 输出文件名
             )
 
-            image_files = list_images_in_directory( f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory( app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
             
         # -----------------------------
@@ -69,11 +71,11 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'amplitude':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
-            costaline = thematic_configs.get('costaline') or f'./tempfile/{project_id}/coastline.npz'
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
 
             from modules.thematic.gen_maps import gen_tide_analysis
-            temp_tidenpz = f'./tempfile/{project_id}/tide_analysis.npz'
+            temp_tidenpz = app.config['TEMP_DIR'] +f'/{project_id}/tide_analysis.npz'
             gen_tide_analysis(water_nc_path, temp_tidenpz)  # 潮汐调和分析
 
             # 获取专题图参数配置
@@ -93,7 +95,7 @@ def thematic_routes(app):
                         png_name=thematic_name # 输出文件名
                         )  # 绘制振幅和相位等值线图
             
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         
         # -----------------------------
@@ -101,7 +103,7 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'flow':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             inter = thematic_configs.get('inter') or 10  # 采样间隔
             time_range =  ast.literal_eval(thematic_configs.get('time_range')) or (0, 10)  # 时间步范围
@@ -145,7 +147,7 @@ def thematic_routes(app):
                 lat_max=None,
                 png_name=thematic_name # 输出文件名
             )
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         
         # -----------------------------
@@ -153,7 +155,7 @@ def thematic_routes(app):
         # -----------------------------
         elif thematic_type == 'flow_nodepth':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             inter = thematic_configs.get('inter') or 10  # 采样间隔
             time_range =  ast.literal_eval(thematic_configs.get('time_range')) or (0, 10)  # 时间步范围
@@ -198,18 +200,18 @@ def thematic_routes(app):
                 lat_max=lat_max,
                 png_name=thematic_name # 输出文件名
             )
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
         # 点潮位流速专题图制作
         # -----------------------------
         elif thematic_type == 'flow_tide':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             lon_stn = ast.literal_eval(thematic_configs.get('lon_stn')) or [450500, 451500]  # 观测站经度序列
             lat_stn = ast.literal_eval(thematic_configs.get('lat_stn')) or [4250500, 4252000]  # 观测站维度序列
-            stn_name = thematic_configs.get('stn_name') or ['station1', 'station2']  # 观测站名称
+            stn_name = thematic_configs.get('stn_name') or ['默认站1', '默认站2']  # 观测站名称
             time_interval = ast.literal_eval(thematic_configs.get('time_interval')) or (0, 100)  # 时间步范围
              # 绘制点潮位流速图
             from modules.thematic.points_tide_flow import points_tide_flow
@@ -222,14 +224,14 @@ def thematic_routes(app):
                     time_interval=time_interval, # 时间步长
                     png_name=thematic_name # 输出文件名
                  ) 
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
         # 水深专题图制作
         # -----------------------------
         elif thematic_type == 'griddepth':
             water_nc_path = thematic_configs.get('water_nc_path') #必填
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             tri_linewidth = thematic_configs.get('tri_linewidth') or 0.3
             lon_min = thematic_configs.get('lon_min') or None
@@ -250,7 +252,7 @@ def thematic_routes(app):
                 dpi=dpi,   png_name=thematic_name # 输出文件名
                 )
             
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
         # 拉格朗日粒子追踪专题图制作
@@ -259,7 +261,7 @@ def thematic_routes(app):
             
             lag_nc_path = thematic_configs.get('lag_nc_path') #必填
             lag_index = thematic_configs.get('lag_index') or 0
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             from modules.thematic.lag_script import lag_script
             lag_script(lag_nc_path, 
                        costaline,
@@ -267,14 +269,14 @@ def thematic_routes(app):
                        lag_index=lag_index,
                        png_name=thematic_name) 
             
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
         # 污染物扩散专题图制作
         # -----------------------------
         elif thematic_type == 'pollutant':
             pollutant_nc_path = thematic_configs.get('pollutant_nc_path') #必填
-            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
             lon_min = thematic_configs.get('lon_min') or None
             lon_max = thematic_configs.get('lon_max')  or None
@@ -301,7 +303,7 @@ def thematic_routes(app):
                                 dpi=dpi, 
                                 png_name=thematic_name # 输出文件名
                             ) 
-            image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
     def list_images_in_directory(directory):
         """遍历目录及其子目录，列出所有图片文件的相对路径。"""

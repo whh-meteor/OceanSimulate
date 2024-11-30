@@ -138,5 +138,3 @@ def reindex_mesh_withfile(input_file, output_file):
 
 
 
-# reindex_mesh("F:/Desktop/【LTGK】海洋一所/240531084643LTX/1开发域-2022/3编码实现/后端/Python-Flask/tempfile/临时mesh-zdy.mesh",
-#               "F:/Desktop/【LTGK】海洋一所/240531084643LTX/1开发域-2022/3编码实现/后端/Python-Flask/tempfile/临时mesh-zdy-res.mesh")

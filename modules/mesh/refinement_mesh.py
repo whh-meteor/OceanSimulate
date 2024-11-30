@@ -164,7 +164,7 @@ def delete_files(*files):
                     os.remove(file)
                 except Exception as e:
                     print(f"删除文件失败: {e}")
-def refinement_mesh(geojson_data,mesh_size,inner_curve_data):
+def refinement_mesh(geojson_data,mesh_size,inner_curve_data,mesh_out_file):
     # 初始化 Gmsh
     model_name = "modified_model"
     initialize_gmsh(model_name)
@@ -201,12 +201,8 @@ def refinement_mesh(geojson_data,mesh_size,inner_curve_data):
      # 读取 .msh 文件提取点和单元信息
     mesh_points, cells = read_msh_file(msh_files)
     # 创建简化的 .mesh 文件
-    import uuid
-
-    # 生成唯一的文件名
-    unique_id = uuid.uuid4()  # 生成 UUID
-    mesh_out_file = f"./tempfile/{msh_files}_{unique_id}.mesh"  # 在文件名中添加 UUID
-
+ 
+    mesh_out_file = mesh_out_file
     create_simple_mesh_file(mesh_out_file, mesh_points, cells)
 
     # 删除中间文件

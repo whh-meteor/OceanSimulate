@@ -7,12 +7,17 @@ import rasterio.sample, fiona, pyogrio._vsi ,pyogrio._geometry
 
 print(rasterio.sample,fiona ,pyogrio._vsi,pyogrio._geometry)
 app = Flask(__name__)
+
+
+
+# 读取配置文件
 from utils.config import get_config_path
 import configparser
 config = configparser.ConfigParser()
 config_file_path = get_config_path()
-
 config.read(config_file_path)
+# 设置全局配置
+app.config['TEMP_DIR'] = config['Directory']['TEMP_Dir']
 
 # 初始化路由
 init_routes(app)
