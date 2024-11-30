@@ -201,10 +201,27 @@ def thematic_routes(app):
             image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
-        # 水深专题图制作
+        # 点潮位流速专题图制作
         # -----------------------------
         elif thematic_type == 'flow_tide':
-    
+            water_nc_path = thematic_configs.get('water_nc_path') #必填
+            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
+            # 获取专题图参数配置
+            lon_stn = ast.literal_eval(thematic_configs.get('lon_stn')) or [450500, 451500]  # 观测站经度序列
+            lat_stn = ast.literal_eval(thematic_configs.get('lat_stn')) or [4250500, 4252000]  # 观测站维度序列
+            stn_name = thematic_configs.get('stn_name') or ['station1', 'station2']  # 观测站名称
+            time_interval = ast.literal_eval(thematic_configs.get('time_interval')) or (0, 100)  # 时间步范围
+             # 绘制点潮位流速图
+            from modules.thematic.points_tide_flow import points_tide_flow
+            points_tide_flow(
+                water_nc_path, 
+                    png_path ,
+                    lon_stn=lon_stn,# 观测站经度序列
+                    lat_stn=lat_stn, # 观测站维度序列
+                    stn_name=stn_name, # 观测站名称
+                    time_interval=time_interval, # 时间步长
+                    png_name=thematic_name # 输出文件名
+                 ) 
             image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
@@ -239,9 +256,16 @@ def thematic_routes(app):
         # 拉格朗日粒子追踪专题图制作
         # -----------------------------
         elif thematic_type == 'lagtrack':
-            # 拉格朗日粒子追踪图
+            
+            lag_nc_path = thematic_configs.get('lag_nc_path') #必填
+            lag_index = thematic_configs.get('lag_index') or 0
+            png_path = thematic_configs.get('png_path') or f'./tempfile/{project_id}/png/'
             from modules.thematic.lag_script import lag_script
-            lag_script(lag_nc_path, costaline, png_path) 
+            lag_script(lag_nc_path, 
+                       costaline,
+                        png_path,
+                       lag_index=lag_index,
+                       png_name=thematic_name) 
             
             image_files = list_images_in_directory(f"./tempfile/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200

@@ -11,7 +11,7 @@ import numpy as np
 # 绘制拉格朗日粒子追踪函数
 # -----------------------------
 
-def lag_script(nc_path,costaline_path,png_path):
+def lag_script(nc_path,costaline_path,png_path,index=0,png_name='lagtrack'):
     # 打开 NetCDF 文件
   file_path = nc_path  # 替换为您的文件路径
   nf = netcdf_file(file_path, 'r', mmap=False)
@@ -53,7 +53,7 @@ def lag_script(nc_path,costaline_path,png_path):
   #     os.mkdir('lagtrack')
 
   # 选择第一个粒子的轨迹
-  i = 0  # 选择第一个粒子
+  i = index  # 选择第一个粒子
 
   # 设定坐标轴范围
   xlim = [min(slon[i]), max(slon[i])]  # 设置x轴范围
@@ -73,7 +73,7 @@ def lag_script(nc_path,costaline_path,png_path):
   ax2d.set_ylabel('Latitude (degrees)')
   ax2d.set_title('Trajectory of Particle 1')
   ax2d.legend()
-  plt.savefig(png_path+'lagtrack/trajectory_2D.png')  # 保存2D图像
+  plt.savefig(png_path+f'lagtrack/{png_name}_2D.png')  # 保存2D图像
 
   # 绘制3D图
   fig3d = plt.figure()
@@ -86,7 +86,7 @@ def lag_script(nc_path,costaline_path,png_path):
   ax3d.set_zlabel('Depth (m)')
   ax3d.set_title('3D Trajectory of Particle 1')
   ax3d.legend()
-  plt.savefig(png_path+'lagtrack/trajectory_3D.png')  # 保存3D图像
+  plt.savefig(png_path+f'lagtrack/{png_name}_3D.png')  # 保存3D图像
 
   # plt.show()  # 显示图像
 
