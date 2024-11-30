@@ -301,7 +301,14 @@ def get_larger_file_index(mesh_files):
 
     return largest_index
 
-
+# 将 worker 函数提取到全局作用域
+def worker(geo_file, msh_file):
+    gmsh.initialize()
+    gmsh.open(geo_file)
+    gmsh.model.mesh.generate(2)  # 生成二维网格
+    gmsh.write(msh_file)
+    gmsh.finalize()
+ 
 import os
 import matplotlib.pyplot as plt
 import gmsh
@@ -350,25 +357,31 @@ def GenerateMesh(geojson_file, mesh_size, of_geo, of_msh, of_mesh):
         plt.grid(True)
         plt.legend()
         plt.show()
-
+    import threading
     # 使用Gmsh将.geo转换为.msh文件
     def convert_geo_to_msh(geo_file, msh_file):
         print(geo_file)
         print(msh_file)
         # activate_path = 'D:\\anaconda3\\Scripts\\activate.bat oceanmesh2d'
         # gmsh_path = 'D:\\anaconda3\\envs\\oceanmesh2d\\Scripts\\gmsh'  # 请根据实际路径调整
-        activate_path =  current_app.config['activate_path']
-        gmsh_path =  current_app.config['gmsh_path']
-        # command = f'call {activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
-        if os.name == 'nt':  # Windows
-            command = f'call {activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
-        else:  # Linux/Unix 虚拟环境不需要source
-            command = f'{activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
-        try:
-            subprocess.run(command, shell=True, check=True)
-            print(f"成功将 {geo_file} 转换为 {msh_file}.")
-        except subprocess.CalledProcessError as e:
-            print(f"发生错误: {e}")
+        # activate_path =  current_app.config['activate_path']
+        # gmsh_path =  current_app.config['gmsh_path']
+        # # command = f'call {activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
+        # if os.name == 'nt':  # Windows
+        #     command = f'call {activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
+        # else:  # Linux/Unix 虚拟环境不需要source
+        #     command = f'{activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
+        # try:
+        #     subprocess.run(command, shell=True, check=True)
+        #     print(f"成功将 {geo_file} 转换为 {msh_file}.")
+        # except subprocess.CalledProcessError as e:
+        #     print(f"发生错误: {e}")
+        import multiprocessing
+        # 创建子进程来执行 GMSH 操作
+        process = multiprocessing.Process(target=worker, args=(geo_file, msh_file))
+        process.start()
+        process.join()
+
 
     # 读取 .msh 文件
     def read_msh_file(msh_file):
