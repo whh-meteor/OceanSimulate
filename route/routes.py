@@ -42,7 +42,7 @@ def init_routes(app):
     ####=======================测试部分=====================================####
     def index():
         
-        return app.config['TEMP_DIR'] 
+        return app.config['TEMP_DIR'] ,app.config['STATIC_DIR']
    
     def geojson_to_mesh(geojson_file, mesh_file):
         with open(geojson_file, 'r', encoding='utf-8') as f:
@@ -135,9 +135,9 @@ def init_routes(app):
             # 根据结果nc文件生成全部的图片
             temp_costaline_npz =  app.config['TEMP_DIR']+f'/{projectid}/coastline.npz'
             temp_tide_npz =  app.config['TEMP_DIR']+f'/{projectid}/tide_analysis.npz'
-            get_coastline_from_npz("./static/pltf/pltf_0002.nc", # 水动力网格文件路径
-                            "./static/pltf/ezwssc_0001.nc",# 污染物nc文件路径
-                            "./static/pltf/lagnc_lagtra.nc", # 粒子追踪文件路径
+            get_coastline_from_npz(app.config['STATIC_DIR']+"/pltf/pltf_0002.nc", # 水动力网格文件路径
+                            app.config['STATIC_DIR']+"/pltf/ezwssc_0001.nc",# 污染物nc文件路径
+                            app.config['STATIC_DIR']+"/pltf/lagnc_lagtra.nc", # 粒子追踪文件路径
                             temp_costaline_npz,
                             temp_tide_npz,
                             image_dir)
@@ -145,30 +145,11 @@ def init_routes(app):
             image_files = list_images_in_directory(image_dir)
             return jsonify({'data': image_files,'success': True}), 200
         else:
-            # get_coastline_from_npz("./static/pltf/pltf_0002.nc", # 水动力网格文件路径
-            #     "./static/pltf/ezwssc_0001.nc",# 污染物nc文件路径
-            #     "./static/pltf/lagnc_lagtra.nc", # 粒子追踪文件路径
-            #     app.config['TEMP_DIR'] +"/coastline.npz",
-            #     app.config['TEMP_DIR'] +"/tide_analysis.npz",
-            #     image_dir)
+ 
                     # 列出目录下所有图片文件
             image_files = list_images_in_directory(image_dir)
             return jsonify({'data': image_files,'success': True}), 200
-    # # 通过参数控制单张图片生成
-    # @app.route('/gen-single-img', methods=['GET', 'POST'])
-    # def gen_single_img():
-    #     data = request.get_json()
-    #     img_type = data.get('img-type')
-    #     if img_type is None:
-    #         return jsonify({"error": "缺失图片类型"}), 400
-        
-    #     allType = ['mesh_coastline','amplitude', 'flow', 'flow_nodepth', 'flow_tide', 'griddepth', 'lagtrack']
-        
-    #     if img_type not in allType:
-    #         return jsonify({"error": "无效的图片类型"}), 400
-        
-    #     # 继续处理合法类型的逻辑
-    #     return jsonify({"success": True, "img-type": img_type}), 200
+ 
 
     def list_images_in_directory(directory):
         """遍历目录及其子目录，列出所有图片文件的相对路径。"""
@@ -198,12 +179,12 @@ def init_routes(app):
         # # 从请求中解析GeoJSON和步长参数
         # data = request.get_json()
         # geojson = data.get('time_index')
-        # geojson  =get_pltf_points("./static/pltf/pltf_0002.nc", 100, 0  )
+        # geojson  =get_pltf_points(app.config['STATIC_DIR']+"/pltf/pltf_0002.nc", 100, 0  )
 
         # jsonfile = app.config['TEMP_DIR']+f"/geojson_{uuid.uuid4()}.json"
         # with open(jsonfile, 'w') as f:   
         #     json.dump(geojson, f)
-        png,bbox = png_from_uv(0,100,'200*200',app.config['TEMP_DIR'] +'/wave.png','./static/pltf/pltf_0002.nc')
+        png,bbox = png_from_uv(0,100,'200*200',app.config['TEMP_DIR'] +'/wave.png',app.config['STATIC_DIR'] +'/pltf/pltf_0002.nc')
         # return jsonify(geojson),200
  
         return send_file(app.config['TEMP_DIR'] +'/wave.png', mimetype='image/png')

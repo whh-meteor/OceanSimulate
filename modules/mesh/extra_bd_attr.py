@@ -83500,27 +83500,27 @@ if __name__ == '__main__':
     # Step 8: 对updated_points_data进行缓冲区分析
     buffered_points_data = analyze_buffered_points(updated_points_data,0.05)
     print(f'Step 8 output: {buffered_points_data}')
-    # 输出测试
-    cropped_shp_file = './static/data/cropped_shp.shp'
-    buffered_points_file = './static/data/buffered_points.shp'
+    # # 输出测试
+    # cropped_shp_file = './static/data/cropped_shp.shp'
+    # buffered_points_file = './static/data/buffered_points.shp'
 
-    cropped_shp_data.to_file(cropped_shp_file, driver='ESRI Shapefile')
-    buffered_points_data.to_file(buffered_points_file, driver='ESRI Shapefile')
+    # cropped_shp_data.to_file(cropped_shp_file, driver='ESRI Shapefile')
+    # buffered_points_data.to_file(buffered_points_file, driver='ESRI Shapefile')
 
     # Step 9: 将buffered_points_dat与cropped_shp_data进行相交分析，返回与cropped_shp_data相交的缓冲区在updated_points_data对应的Geojson点集 
     intersected_points_data = analyze_intersected_points(buffered_points_data, cropped_shp_data,updated_points_data)
     print(f'Step 9 output: {intersected_points_data}')
-    # 将json对象的结果写入文件
-    intersected_points_file = './static/data/intersected_points.json'
-    with open(intersected_points_file, 'w') as f:   
-        json.dump(intersected_points_data, f)
+    # # 将json对象的结果写入文件
+    # intersected_points_file = './static/data/intersected_points.json'
+    # with open(intersected_points_file, 'w') as f:   
+    #     json.dump(intersected_points_data, f)
     # Step 10: 更新三角形顶点属性
     updated_triangles_data2 = update_triangle_vertex_properties_costaline(updated_triangles_data, intersected_points_data)
     print(f'Step 10 output: {updated_triangles_data2}')
 
-    path = './static/data/res_points.json'
-    with open(path, 'w') as f:   
-        json.dump(updated_triangles_data2, f)
+    # path = './static/data/res_points.json'
+    # with open(path, 'w') as f:   
+    #     json.dump(updated_triangles_data2, f)
 
      
 
