@@ -370,7 +370,9 @@ def init_routes(app):
         # 从JSON中获取GeoJSON对象
         geojson = data.get('geojson1')
           # 获取步长参数 , 默认0.01
-        mesh_size = data.get('mesh_size',0.01)
+        mesh_size = data.get('mesh_size')
+        if mesh_size is None or mesh_size<=0:
+            return jsonify({'error': 'Invalid mesh_size.'}), 400
         print(mesh_size)
         if geojson is None:
             return jsonify({'error': 'GeoJSON is required'}), 400
@@ -409,7 +411,9 @@ def init_routes(app):
     def genclip2mesh():
         data = request.get_json() # 从请求中解析GeoJSON和步长参数
         geojson = data.get('geojson1') # 从JSON中获取GeoJSON对
-        mesh_size = data.get('mesh_size',0.1) # 获取步长参数 , 默认0.1
+        mesh_size = data.get('mesh_size') # 获取步长参数 , 默认0.1
+        if mesh_size is None or mesh_size<=0:
+            return jsonify({'error': 'Invalid mesh_size.'}), 400
         if geojson is None:
             return jsonify({'error': 'GeoJSON is required'}), 400
         print("网格步长：")

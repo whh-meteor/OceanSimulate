@@ -14,6 +14,7 @@ class DyeConcentrationPlotter:
                  contour_color='k', contour_linewidth=0.5,dpi=300,png_name='dye_concentration'): 
                 # 打印传入的参数，确保它们正确传递
         print(f"Initializing DyeConcentrationPlotter with the following parameters:")
+        print(f"lon_col: {lon_col}, lat_col: {lat_col}")
         print(f"lon_min: {lon_min}, lon_max: {lon_max}, lat_min: {lat_min}, lat_max: {lat_max}")
         print(f"dlon: {dlon}, dlat: {dlat}, levels: {levels}, time_index: {time_index}, siglay_index: {siglay_index}")
         print(f"nc_file: {nc_file}, output_dir: {output_dir}",f"png_name: {png_name}")
@@ -71,11 +72,14 @@ class DyeConcentrationPlotter:
     def _read_nc_file(self):
         """ 读取NetCDF文件并提取需要的数据 """
         nc = Dataset(self.nc_file, 'r')
-
+        # lonc = nc.variables['xc'][:]  # 读取网格中心点的经度
+        # latc = nc.variables['yc'][:]  # 读取网格中心点的纬度
         lon = nc.variables[self.lon_col][:]  # 经度
         lat = nc.variables[self.lat_col][:]  # 纬度
         nv = nc.variables[self.nv_col][:] - 1  # 网格连接信息，转换为0基索引
         dye = nc.variables[self.dye_col][:] * 1000  # 污染物浓度，单位转换为千
+        # xlim = [lonc.min(), lonc.max()]  # 设置 x 轴范围
+        # ylim = [latc.min(), latc.max()]  # 设置 y 轴范围
         return {'lon': lon, 'lat': lat, 'nv': nv, 'dye': dye, 'nc': nc}
 
     def _create_triangular_mesh(self, lon, lat, nv):
@@ -112,7 +116,15 @@ class DyeConcentrationPlotter:
         plt.rcParams['axes.unicode_minus'] = False
         text_label = "工程中心"
         plt.text(self.dlon, self.dlat, text_label, fontsize=10, ha='center', color='red')
-
+        ax2d = plt.subplot(111)
+        ax2d.set_aspect('equal')
+                # 设置坐标轴范围
+        # if self.lon_min is not None and self.lon_max is not None and self.lat_min is not None and self.lat_max is not None:
+        #     ax2d.set_xlim(self.lon_min, self.lon_max)
+        #     ax2d.set_ylim(self.lat_min, self.lat_max)
+        # else:
+        #     ax2d.set_xlim(self.nc_data['xlim']xlim[0], self.nc_data['xlim']xlim[0])
+        #     ax2d.set_ylim(ylim[0], ylim[1])
         # 保存PNG文件
         # output_path = os.path.join(self.output_dir, f'dye_concentration_{self.time_index+1}.png')
         # print(self.output_dir+'/pollutant.png')
@@ -160,7 +172,9 @@ def pollutantDispersion(
         png_name='dye_concentration',
         ):
      print("开始污染物扩散:"+nc_file)
-     plotter =DyeConcentrationPlotter(lon_min, lon_max, lat_min, lat_max,dlon, dlat, time_index,siglay_index,nc_file, output_dir,dpi,png_name)
+     plotter =DyeConcentrationPlotter( lon_min, lon_max, lat_min, lat_max, dlon, dlat,  time_index=time_index,siglay_index=siglay_index, 
+                 nc_file=nc_file, output_dir=output_dir,levels=None, lon_col='x', lat_col='y', nv_col='nv', dye_col='ssc',
+                 contour_color='k', contour_linewidth=0.5,dpi=dpi,png_name=png_name)
      plotter.plot()
      print("污染物扩散完成")
 

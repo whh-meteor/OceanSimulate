@@ -11,7 +11,7 @@ import numpy as np
 # 绘制拉格朗日粒子追踪函数
 # -----------------------------
 
-def lag_script(nc_path,costaline_path,png_path,index=0,png_name='lagtrack'):
+def lag_script(nc_path,costaline_path,png_path,lag_index=0,png_name='lagtrack'):
     # 打开 NetCDF 文件
   file_path = nc_path  # 替换为您的文件路径
   nf = netcdf_file(file_path, 'r', mmap=False)
@@ -53,7 +53,7 @@ def lag_script(nc_path,costaline_path,png_path,index=0,png_name='lagtrack'):
   #     os.mkdir('lagtrack')
 
   # 选择第一个粒子的轨迹
-  i = index  # 选择第一个粒子
+  i = lag_index  # 选择第一个粒子
 
   # 设定坐标轴范围
   xlim = [min(slon[i]), max(slon[i])]  # 设置x轴范围
