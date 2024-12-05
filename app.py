@@ -20,17 +20,20 @@ config.read(config_file_path)
 app.config['TEMP_DIR'] = config['Directory']['TEMP_Dir']
 app.config['STATIC_DIR'] = config['Directory']['STATIC_Dir']
 
+
+
 # 初始化路由
 init_routes(app)
 thematic_routes(app)
 if os.name == 'nt':  # Windows
-    app.config['activate_path'] = config['NT_Gmsh']['activate_path']
-    app.config['gmsh_path'] = config['NT_Gmsh']['gmsh_path']
-    # app.config['activate_path'] = 'D:\\anaconda3\\Scripts\\activate.bat oceanmesh2d'
-    # app.config['gmsh_path'] = 'D:\\anaconda3\\envs\\oceanmesh2d\\Scripts\\gmsh'
+    app.config['activate_path'] = config['NT']['activate_path']
+    app.config['gmsh_path'] = config['NT']['gmsh_path']
+
 else:  # Linux/Unix
-    app.config['activate_path'] = config['Linux_Gmsh']['activate_path']
-    app.config['gmsh_path'] = config['Linux_Gmsh']['gmsh_path']
+    app.config['activate_path'] = config['Linux']['activate_path']
+    app.config['gmsh_path'] = config['Linux']['gmsh_path']
+    # Linux 投影配置
+    os.environ['PROJ_LIB'] = app.config['PRJ_DB'] 
       
 
 
