@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.io import netcdf_file
 
 # 打开 NetCDF 文件
-file_path = 'lagnc_lagtra.nc'  # 替换为您的文件路径
+file_path =  'F:/Desktop/OceanSimulate/static/pltf/lagnc_lagtra.nc' # 替换为您的文件路径
 nf = netcdf_file(file_path, 'r', mmap=False)
 
 # 读取变量
@@ -38,7 +38,7 @@ for i in range(nlag):
     stime.append(time[indfirst:indlast + 1])
 
 # 读取岸线数据
-coast = np.load('coastline.npz')
+coast = np.load('F:/Desktop/OceanSimulate/tempfile/jhhhkkllmnhhuoolmmnbv/coastline.npz')
 coastx = coast['coastx']
 coasty = coast['coasty']
 

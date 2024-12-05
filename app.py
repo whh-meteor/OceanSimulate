@@ -19,9 +19,7 @@ config.read(config_file_path)
 # 设置全局配置
 app.config['TEMP_DIR'] = config['Directory']['TEMP_Dir']
 app.config['STATIC_DIR'] = config['Directory']['STATIC_Dir']
-
-
-
+app.config['PRJ_DB'] =config['Linux']['PRJ_DB']
 # 初始化路由
 init_routes(app)
 thematic_routes(app)
@@ -34,9 +32,6 @@ else:  # Linux/Unix
     app.config['gmsh_path'] = config['Linux']['gmsh_path']
     # Linux 投影配置
     os.environ['PROJ_LIB'] = app.config['PRJ_DB'] 
-      
-
-
 if __name__ == '__main__':
     # debug 热更新
     app.run(debug=True, threaded=True,port=5000, host='0.0.0.0')

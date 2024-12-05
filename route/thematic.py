@@ -275,6 +275,40 @@ def thematic_routes(app):
             
             image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
             return jsonify({'data': image_files,'success': True}), 200
+                # -----------------------------
+        # 拉格朗日粒子追踪 range范围例子v2
+        # -----------------------------
+        elif thematic_type == 'lagtrack-range':
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
+            lag_nc_path = thematic_configs.get('lag_nc_path') #必填
+            lag_index = ast.literal_eval(thematic_configs.get('lag_index')) or (0,5)
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
+            from modules.thematic.lag_script import lag_script_v2
+            lag_script_v2(lag_nc_path, 
+                       costaline,
+                        png_path,
+                       lag_index=lag_index,
+                       png_name=thematic_name) 
+            
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
+            return jsonify({'data': image_files,'success': True}), 200
+                # -----------------------------
+        # 拉格朗日粒子追踪 自选点v3
+        # -----------------------------
+        elif thematic_type == 'lagtrack-multi':
+            costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
+            lag_nc_path = thematic_configs.get('lag_nc_path') #必填
+            lag_index = ast.literal_eval(thematic_configs.get('lag_index'))  or [0, 50, 100] 
+            png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
+            from modules.thematic.lag_script import lag_script_v3
+            lag_script_v3(lag_nc_path, 
+                       costaline,
+                        png_path,
+                       lag_index=lag_index,
+                       png_name=thematic_name) 
+            
+            image_files = list_images_in_directory(app.config['TEMP_DIR'] +f"/{project_id}/png/{thematic_type}/")
+            return jsonify({'data': image_files,'success': True}), 200
         # -----------------------------
         # 污染物扩散专题图制作
         # -----------------------------
