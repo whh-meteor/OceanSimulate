@@ -222,12 +222,12 @@ def analyze_buffered_points(points_geojson, buffer_distance):
 import pandas as pd
 def analyze_intersected_points(buffered_points_dat, cropped_shp_data, updated_points_data):
     # 读取 GeoDataFrame 格式的 buffered_points_dat 和 cropped_shp_data
-    buffered_points_gdf = buffered_points_dat.set_crs('EPSG:4326')
-    cropped_shp_gdf = cropped_shp_data.set_crs('EPSG:4326')
+    buffered_points_gdf = buffered_points_dat.set_crs('EPSG:4326',allow_override=True)
+    cropped_shp_gdf = cropped_shp_data.set_crs('EPSG:4326',allow_override=True)
 
     # 转换 updated_points_data 为 GeoDataFrame
     updated_points_gdf = gpd.GeoDataFrame.from_features(updated_points_data)
-    updated_points_gdf = updated_points_gdf.set_crs('EPSG:4326')
+    updated_points_gdf = updated_points_gdf.set_crs('EPSG:4326',allow_override=True)
 
     # 添加空间索引
     buffered_points_gdf.sindex
