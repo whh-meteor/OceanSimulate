@@ -98,7 +98,7 @@ def update_triangle_vertex_properties(triangles_data, updated_points_data):
         for point_prop in triangle_points:
             for updated_point in updated_points_data['features']:
                 if updated_point['properties']['id'] == point_prop['id']:
-                    point_prop['value'] = 2  # Update value to 1 based on intersection analysis
+                    point_prop['value'] = 1  # Update value to 1 based on intersection analysis
     
     return triangles_data
 
@@ -248,7 +248,7 @@ def analyze_intersected_points(buffered_points_dat, cropped_shp_data, updated_po
         possible_matches = cropped_shp_gdf.iloc[possible_matches_index]
 
         # 检查是否真的相交，如果没有相交，则保留该三角形
-        if  possible_matches.intersects(triangle.geometry).any():
+        if  not possible_matches.intersects(triangle.geometry).any():
             # 使用 pd.concat 替代 append
             gdf_non_intersecting = pd.concat([gdf_non_intersecting, gpd.GeoDataFrame([triangle], columns=buffered_points_gdf.columns)], ignore_index=True)
     # 设置 CRS 为 EPSG:4326（WGS84），确保有投影信息
@@ -274,7 +274,7 @@ def update_triangle_vertex_properties_costaline(triangles_data, updated_points_d
         for point_prop in triangle_points:
             for updated_point in updated_points_data['features']:
                 if updated_point['properties']['id'] == point_prop['id']:
-                    point_prop['value'] = 1  # Update value to 1 based on intersection analysis
+                    point_prop['value'] = 2  # Update value to 1 based on intersection analysis
     
     return triangles_data
 def extra_bd_attr(geojson_data,mesh_size,coastaline_shp_path):

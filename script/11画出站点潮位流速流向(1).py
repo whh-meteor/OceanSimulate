@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import netcdf_file
 
 # 打开 NetCDF 文件并读取变量
-nf = netcdf_file('pltf_0001.nc', 'r')
+nf = netcdf_file('F:/Desktop/OceanSimulate/static/pltf/pltf_0002.nc', 'r')
 lon = nf.variables['x'][:]  # 节点经度
 lat = nf.variables['y'][:]  # 节点纬度
 ua = nf.variables['u'][:]  # 水平流速 u，维度为 (time, siglay, nele)
@@ -26,8 +26,8 @@ def get_station_data():
 lon_stn, lat_stn, stn_name = get_station_data()
 
 # 设置时间段
-start_time = 10  # 起始时间（单位：天，或根据实际数据格式调整）
-end_time = 20   # 结束时间（单位：天，或根据实际数据格式调整）
+start_time = 0 # 起始时间（单位：天，或根据实际数据格式调整）
+end_time = 30   # 结束时间（单位：天，或根据实际数据格式调整）
 
 # 获取符合时间段的数据
 time_mask = (time >= start_time) & (time <= end_time)
