@@ -1,7 +1,7 @@
 from flask import current_app
 import json
 from collections import defaultdict
-
+import gmsh
 def Mesh_nodes_to_Triangle_Json(mesh):
 
     def parse_mesh_file(mesh_file):
@@ -303,7 +303,7 @@ def get_larger_file_index(mesh_files):
 
 # 将 worker 函数提取到全局作用域
 def worker(geo_file, msh_file):
-    gmsh.initialize()
+    gmsh.initialize()  
     gmsh.open(geo_file)
     gmsh.model.mesh.generate(2)  # 生成二维网格
     gmsh.write(msh_file)
@@ -315,6 +315,7 @@ import gmsh
 import meshio
 import subprocess
 import uuid
+import tempfile
 def GenerateMesh(geojson_file, mesh_size, of_geo, of_msh, of_mesh):
     # 读取GeoJSON文件并提取坐标
     def read_coordinates_from_geojson(geojson_obj):
@@ -358,7 +359,8 @@ def GenerateMesh(geojson_file, mesh_size, of_geo, of_msh, of_mesh):
         plt.legend()
         plt.show()
     import threading
-    # 使用Gmsh将.geo转换为.msh文件
+ 
+
     def convert_geo_to_msh(geo_file, msh_file):
        
         print(geo_file)
@@ -372,17 +374,39 @@ def GenerateMesh(geojson_file, mesh_size, of_geo, of_msh, of_mesh):
             command = f'call {activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
         else:  # Linux/Unix 虚拟环境不需要source
             command = f'{activate_path} && "{gmsh_path}" {geo_file} -2 -o {msh_file}'
+        # 方案一：直接调用命令行
         try:
             subprocess.run(command, shell=True, check=True)
-            print(f"成功将 {geo_file} 转换为 {msh_file}.")
+            print(f"方案一成功: {geo_file} 转换为 {msh_file}.")
+        # 方案二：创建子进程来执行 GMSH 操作
         except subprocess.CalledProcessError as e:
-            print(f"命令调用发生错误: {e}")
+            print(f"命令调用发生错误: {e}，创建子进程来执行 GMSH 操作。")
             import multiprocessing
             # 创建子进程来执行 GMSH 操作
             process = multiprocessing.Process(target=worker, args=(geo_file, msh_file))
             process.start()
             process.join()
-            print(f"创建子进程来执行 GMSH 操作,成功将 {geo_file} 转换为 {msh_file}.")
+            if not os.path.exists(msh_file):
+                print(f"方案二失败: {msh_file} 未成功生成. 尝试方案三.")
+            else:
+                print(f"方案二成功: {geo_file} 转换为 {msh_file}.")
+                return
+        # 方案三：gmsh原生配置
+        if not os.path.exists(msh_file):
+            try:
+                # 方案三：GMSH 原生配置
+                gmsh.initialize(interruptible=False)
+                gmsh.model.add("geo2msh")
+                gmsh.open(geo_file)
+                gmsh.model.mesh.generate(2)
+                gmsh.write(msh_file)
+                gmsh.finalize()
+                print(f"方案三成功: {geo_file} 转换为 {msh_file}.")
+            except Exception as e:
+                print(f"方案三失败: {e}")
+                raise RuntimeError(f"所有方案均失败: 无法将 {geo_file} 转换为 {msh_file}.")
+        else:print(f"方案二将geo转为gsm操作,成功将 {geo_file} 转换为 {msh_file}.")
+            
 
 
     # 读取 .msh 文件
@@ -418,7 +442,7 @@ def GenerateMesh(geojson_file, mesh_size, of_geo, of_msh, of_mesh):
             if os.path.exists(file):
                 os.remove(file)
                 print(f"已删除文件: {file}")
-
+    
     # 步骤 1: 从GeoJSON文件中读取坐标
     polygons = read_coordinates_from_geojson(geojson_file)
     
@@ -428,11 +452,18 @@ def GenerateMesh(geojson_file, mesh_size, of_geo, of_msh, of_mesh):
         geo_file = f"{of_geo}_poly{i}_{uuid.uuid4()}.geo"
         generate_gmsh_geo(points, geo_file, mesh_size)
         print(f"Gmsh .geo 文件 '{geo_file}' 生成，网格大小为 {mesh_size}。")
-        
-        # 步骤 3: 转.geo为.msh文件
+       
+       
+        # with tempfile.TemporaryDirectory() as temp_dir:
+        #     msh_file = os.path.join(temp_dir, f"{of_msh}_poly{i}_{uuid.uuid4()}.msh")
+        #     # 步骤 3: 转.geo为.msh文件
+        #     convert_geo_to_msh(geo_file, msh_file)
+        #     # 步骤 4: 读取 .msh 文件提取点和单元信息
+        #     # 确保文件读取逻辑紧随生成逻辑
+        #     mesh_points, cells = read_msh_file(msh_file)
+        # # 步骤 3: 转.geo为.msh文件
         msh_file = f"{of_msh}_poly{i}_{uuid.uuid4()}.msh"
         convert_geo_to_msh(geo_file, msh_file)
-        
         # 步骤 4: 读取 .msh 文件提取点和单元信息
         mesh_points, cells = read_msh_file(msh_file)
         
