@@ -12,6 +12,7 @@ from modules.mesh.updatemesh import  reindex_mesh,reindex_mesh_withfile,reindex_
 from modules.wind.gen_wind_nc import generate_wind_netcdf
 from modules.pltf.pltf import get_pltf_points,get_pltf_timeList
 from modules.pltf.nc2png import png_from_uv
+from modules.pltf.get_nc_value import uv_from_tif
 from modules.thematic.gen_maps import get_coastline_from_npz
 from modules.mesh.extra_bd_attr import extra_bd_attr
 from modules.mesh.sizeCaculate import calculate_mesh_size
@@ -37,7 +38,11 @@ ERA5_Wind = config['Files']['ERA5_Wind'] # ERA5风场数据
 def init_routes(app):
     CORS(app, resources=r'/*')
     # CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
-    
+    # 全局异常处理
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error(f"An error occurred: {e}")
+        return jsonify({"error": str(e)}), 500
     @app.route('/')
     ####=======================测试部分=====================================####
     def index():
@@ -196,6 +201,28 @@ def init_routes(app):
         nc_path = data.get('nc_path')
         list  =get_pltf_timeList(nc_path)
         return jsonify({'data': list,'success': True}), 200
+    # 获取某时间和层数的uv
+    @app.route('/get-uv', methods=['GET', 'POST'])
+    def get_uv():
+        import ast
+        # 从请求中解析GeoJSON和步长参数
+        data = request.get_json()
+        print(data)
+        time_index = data.get('time_index') or 0
+        siglay = data.get('siglay') or 0
+        ncfilePath= data.get('path') or app.config['STATIC_DIR']+"/pltf/pltf_0002.nc"
+        coordinates =  ast.literal_eval(data.get('coordinates')) or (116.366667, 39.933333)
+        if time_index is None or siglay is None:
+            return jsonify({'error': 'time_index and siglay_index are required'}), 400
+        # 调用函数获取uv值
+        try:
+            uv = uv_from_tif(siglay, time_index, '200*200', ncfilePath , coordinates)
+            # uv 转为json格式
+            uv = json.dumps(np.array(uv, dtype=np.float32).astype(float).tolist())
+            return jsonify({'data': uv,'success': True}), 200
+        except Exception as e:
+            print(str(e))
+            return jsonify({'error': '发生未知错误: ' + str(e)}), 500
     ####===========================水深部分=====================================####
     #更新网格水深值
     @app.route('/updateDepth', methods=['GET', 'POST'])
