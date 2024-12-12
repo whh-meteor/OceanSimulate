@@ -30,7 +30,7 @@ config = {
 }
 
  
-def read_nc(nc_path, analog_name):
+def read_nc(nc_path, analog_name,time_index=50):
     nc_file = Dataset(nc_path)
      # 先打印变量信息进行调试
     print("Variables in the file:")
@@ -48,7 +48,7 @@ def read_nc(nc_path, analog_name):
     print(data_time_byte)
     a = len(data_time_byte)
     results = []
-    i = 48
+    i = time_index
     # for i in range(46,47):
         # if i>23:
             # print( "正在处理第"+str(i+1)+"个时间段")
@@ -109,8 +109,8 @@ def read_nc(nc_path, analog_name):
                 dataset = gdal.Open(tiff_path)  # 打开文件
                 grid_data = np.array(dataset.ReadAsArray(0, 0, pixel[0], pixel[1]), dtype=float)
                 # # 读取后删除dir目录
-                # dataset = None
-                # shutil.rmtree(dir_path)
+                dataset = None
+                shutil.rmtree(dir_path)
                 data_after_fli = np.flipud(grid_data)
                 data = data_after_fli.reshape(-1)
                 grid_data_json = format_data(lon, lat, data, item)
@@ -124,9 +124,9 @@ def read_nc(nc_path, analog_name):
                     "avg": np.mean(grid_data).astype(np.float64)
                 }
                 
-                # 保存结果到json文件
-                with open( str(data_time) + '_data.json', 'w') as f:
-                    json.dump(result, f)
+                # # 保存结果到json文件
+                # with open( str(data_time) + '_data.json', 'w') as f:
+                #     json.dump(result, f)
                     
                 results.append(result)
     return results
@@ -267,14 +267,18 @@ def format_data(lon, lat, data, item):
         "header": header
     }
  
-
+def dye2json(nc_path,time):
+        nc_file_path = nc_path or "F:\\Desktop\\ZIZHI-DYE-01.nc"
+        analog_name = sys.argv[2] if len(sys.argv) > 2 else '1805503841063596034'
+        time = time or 50
+        results = read_nc(nc_file_path, analog_name, time)
+        print(results)
+        return results
 def main():
         nc_file_path = sys.argv[1] if len(sys.argv) > 1 else "F:\\Desktop\\ZIZHI-DYE-01.nc"
         analog_name = sys.argv[2] if len(sys.argv) > 2 else '1805503841063596034'
         results = read_nc(nc_file_path, analog_name)
- 
-         
-            
+        print(results)
         return results
  
 

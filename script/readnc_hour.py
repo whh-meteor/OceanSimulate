@@ -2,7 +2,7 @@ from netCDF4 import Dataset
 import numpy as np
 from scipy.interpolate import griddata
 import sys
-# import psycopg2
+import psycopg2
 from datetime import datetime
 import json
 from osgeo import gdal, ogr, osr
@@ -14,8 +14,7 @@ import uuid
 # 考究的要素
 items = ['DYE']
 # 只拿这几层
-# layers = [0, 1, 2]
-layers = [0]
+layers = [0, 2, 5]
 # 像素大小
 pixel = [80, 80]
 # 配置
@@ -29,108 +28,75 @@ config = {
     }
 }
 
- 
+# 数据库连接
+def conn_pgsql():
+    return psycopg2.connect(host='localhost',
+                            port='5432',
+                            database='zhongwang',
+                            user='postgres',
+                            password='123456')
 def read_nc(nc_path, analog_name):
     nc_file = Dataset(nc_path)
-     # 先打印变量信息进行调试
-    print("Variables in the file:")
-    for var_name in nc_file.variables:
-        var = nc_file.variables[var_name]
-        print(f"{var_name}: {var.dimensions}, shape: {var.shape}")
-        
-    lon = nc_file.variables['x'][:]
-    lat = nc_file.variables['y'][:]
+    lon = nc_file.variables['lon'][:]
+    lat = nc_file.variables['lat'][:]
 
     # 格式化nc文件的时间
-    time = nc_file.variables['time']
-    # data_time_byte=time[0, :]
-    data_time_byte=time[:] # 获取所有元素
-    print(data_time_byte)
+    time = nc_file.variables['Times']
+    data_time_byte=time[0, :]
     a = len(data_time_byte)
-    results = []
-    i = 48
-    # for i in range(46,47):
-        # if i>23:
-            # print( "正在处理第"+str(i+1)+"个时间段")
-            # break
-        #  data_time_byte_char = time[i, :]
-    data_time_byte_char = time[i]
-    # 检查掩码数组的内容
-    # print("数据内容:", data_time_byte_char.data)
-    # print("掩码内容:", data_time_byte_char.mask)
-    # 提取有效数据
-    if data_time_byte_char.mask is not None:
-        valid_data = data_time_byte_char.compressed()  # 获取有效的数据
-    else:
-        valid_data = data_time_byte_char.data
-    # 确保有效数据是字节格式
-    valid_data = np.array(valid_data, dtype=np.bytes_)
-    # 解码有效数据
-    try:
-        data_time_char = np.char.decode(valid_data)
-        print("解码后的数据:", data_time_char)
-    except Exception as e:
-        print("解码失败:", e)
-    #  data_time_char = np.char.decode(data_time_byte_char)[:]
-    data_time = ''.join(data_time_char)
-    print( "时间:", data_time)
-    #  data_time = format_string_date(data_time, '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%d %H:%M:%S')
-    for item in items:
-        if item in nc_file.variables:
-            print(f"开始处理{item}数据")
-            variable = nc_file.variables[item]
-            # 遍历每一层级
-            for layer in layers:
-                layer_data = np.array(variable[i, layer, :], dtype=np.float64)
-                print(f"Layer {layer} min: {np.min(layer_data)}, max: {np.max(layer_data)}")
 
-                for i1,value in enumerate(layer_data):
-                    if value<0 :
-                        print(f"发现小于0负值，将其置为0")
-                        layer_data[i1] = 0
-                    # if value>0 :
-                            # print(f"发现>0.01正值!!!")
-    
-                        
-                # 对DIN进行单位换算
-                if item == 'DIN':
-                    layer_data = [x * 14 / 1000 for x in layer_data]
-                # 创建根目录文件夹
-                dir_path = create_temp_dir(item, layer)
-                # 指定shp文件路径
-                shp_path = os.path.join(dir_path, item + '_' + str(i)+'_'+ str(layer) + '.shp')
-                # 指定tiff文件路径
-                tiff_path = os.path.join(dir_path, item + '_' +str(i)+'_'+ str(layer) + '.tif')
-                # 创建shp文件
-                point2shp(shp_path, lon, lat, layer_data, item)
-                # 反距离权重插值，得到插值后的数据
-                idw(tiff_path, shp_path, item)
-                # 读取tiff文件数据
-                dataset = gdal.Open(tiff_path)  # 打开文件
-                grid_data = np.array(dataset.ReadAsArray(0, 0, pixel[0], pixel[1]), dtype=float)
-                # # 读取后删除dir目录
-                # dataset = None
-                # shutil.rmtree(dir_path)
-                data_after_fli = np.flipud(grid_data)
-                data = data_after_fli.reshape(-1)
-                grid_data_json = format_data(lon, lat, data, item)
-                result = {
-                    "item": item,
-                    "layer": layer,
-                    "json": grid_data_json,
-                    "history_id": analog_name,
-                    "nc_path": nc_path,
-                    "datatime": data_time,
-                    "avg": np.mean(grid_data).astype(np.float64)
-                }
-                
-                # 保存结果到json文件
-                with open( str(data_time) + '_data.json', 'w') as f:
-                    json.dump(result, f)
-                    
-                results.append(result)
+    results = []
+    for i in range(0,a):
+     if i>23:
+         break
+     data_time_byte_char = time[i, :]
+     data_time_char = np.char.decode(data_time_byte_char)[:]
+     data_time = ''.join(data_time_char)
+     data_time = format_string_date(data_time, '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%d %H:%M:%S')
+     for item in items:
+       if item in nc_file.variables:
+           variable = nc_file.variables[item]
+           # 遍历每一层级
+           for layer in layers:
+               layer_data = variable[i, layer, :]
+               for i1,value in enumerate(layer_data):
+                   if value<0:
+                       layer_data[i1] = 0
+               # 对DIN进行单位换算
+               if item == 'DIN':
+                   layer_data = [x * 14 / 1000 for x in layer_data]
+               # 创建根目录文件夹
+               dir_path = create_temp_dir(item, layer)
+               # 指定shp文件路径
+               shp_path = os.path.join(dir_path, item + '_' + str(layer) + '.shp')
+               # 指定tiff文件路径
+               tiff_path = os.path.join(dir_path, item + '_' + str(layer) + '.tif')
+               # 创建shp文件
+               point2shp(shp_path, lon, lat, layer_data, item)
+               # 反距离权重插值，得到插值后的数据
+               idw(tiff_path, shp_path, item)
+               # 读取tiff文件数据
+               dataset = gdal.Open(tiff_path)  # 打开文件
+               grid_data = np.array(dataset.ReadAsArray(0, 0, pixel[0], pixel[1]), dtype=float)
+               # 读取后删除dir目录
+               dataset = None
+               shutil.rmtree(dir_path)
+               data_after_fli = np.flipud(grid_data)
+               data = data_after_fli.reshape(-1)
+               grid_data_json = format_data(lon, lat, data, item)
+               result = {
+                   "item": item,
+                   "layer": layer,
+                   "json": grid_data_json,
+                   "history_id": analog_name,
+                   "nc_path": nc_path,
+                   "datatime": data_time,
+                   "avg": np.mean(grid_data).astype(np.float64)
+               }
+               results.append(result)
     return results
- 
+
+
 # 四舍五入数据 对DIN进行处理
 def round_layer_data(layer_data, item, lon, lat):
     cfg = config[item]
@@ -150,8 +116,7 @@ def round_layer_data(layer_data, item, lon, lat):
 def idw(output_file, point_file, item):
     # 确定参数
     opts = gdal.GridOptions(format="GTiff", outputType=gdal.GDT_Float32, width=pixel[0], height=pixel[1],
-                            # algorithm="invdist:power=3.5:smothing=0.0:radius=1.0:max_points=12:min_points=0:nodata=0.0",
-                            algorithm="invdist:power=3.5:smoothing=0.0:max_points=12:min_points=0:nodata=0.0",
+                            algorithm="invdist:power=3.5:smothing=0.0:radius=1.0:max_points=12:min_points=0:nodata=0.0",
                             zfield=item)
     gdal.Grid(destName=output_file, srcDS=point_file, options=opts)
 
@@ -266,17 +231,65 @@ def format_data(lon, lat, data, item):
         "data": data_after_round,
         "header": header
     }
- 
+
+
+# 存储模型模拟nc变量数据
+def store_analog_data(results):
+    # 获取当前实际时间
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    conn = conn_pgsql()
+    cur = conn.cursor()
+    # 遍历所有结果
+    for result in results:
+        # 将数据插入到数据库中
+        cur.execute("INSERT INTO public.analog_data (analog_name, file_path, layer, item, data_time, data, create_time) VALUES (%s, %s, %s, %s, %s, %s, %s);",
+                    (result['analog_name'],
+                     result['nc_path'],
+                     result['layer'],
+                     result['item'],
+                     result['datatime'],
+                     json.dumps(result['json']),
+                     current_time))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# 存储预测数据
+def store_predict_data(results):
+    # 获取当前实际时间
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    conn = conn_pgsql()
+    cur = conn.cursor()
+    # 遍历所有结果
+    for result in results:
+        # 将数据插入到数据库中
+        cur.execute("""
+            INSERT INTO public.material_transport_history_details (id,level, item, data_time, outcome, create_time,history_id) VALUES (%s,%s, %s, %s, %s, %s,%s)
+            ON CONFLICT (data_time, level,item)  
+            DO NOTHING;
+            """,
+                    (str(uuid.uuid1()),
+                     result['layer'],
+                     result['item'],
+                     result['datatime'],
+                     json.dumps(result['json']),
+                     current_time,
+                     int(result['history_id'])))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
 
 def main():
-        nc_file_path = sys.argv[1] if len(sys.argv) > 1 else "F:\\Desktop\\ZIZHI-DYE-01.nc"
+        nc_file_path = sys.argv[1] if len(sys.argv) > 1 else 'F:\\moxing\\hedian\\wuranwu\\bbw_0010.nc'
         analog_name = sys.argv[2] if len(sys.argv) > 2 else '1805503841063596034'
         results = read_nc(nc_file_path, analog_name)
- 
-         
-            
-        return results
- 
+        store_predict_data(results)
+        print('数据入库成功')
+
+
 
 if __name__ == "__main__":
    main()

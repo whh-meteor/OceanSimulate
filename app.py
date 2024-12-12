@@ -1,6 +1,7 @@
 from flask import Flask
 from route.routes import init_routes
 from route.thematic import thematic_routes
+from route.simulate import simulate_routes
 import gmsh
 import os
 import rasterio.sample, fiona, pyogrio._vsi ,pyogrio._geometry
@@ -23,6 +24,7 @@ app.config['PRJ_DB'] =config['Linux']['PRJ_DB']
 # 初始化路由
 init_routes(app)
 thematic_routes(app)
+simulate_routes(app)
 if os.name == 'nt':  # Windows
     app.config['activate_path'] = config['NT']['activate_path']
     app.config['gmsh_path'] = config['NT']['gmsh_path']
