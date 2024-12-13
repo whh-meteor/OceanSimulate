@@ -99,7 +99,7 @@ def points_tide_flow(nc_path, png_path, lon_stn=[681870.630, 704213.096, 723780.
         speed = np.sqrt(u**2 + v**2)  # 总流速
         direction = (np.arctan2(v, u) * 180 / np.pi) % 360  # 流向（角度）
             # 创建一个新的绘图窗口
-        plt.figure(figsize=(10, 8))
+        plt.figure(figsize=(10, 10))
 
         # 绘制潮位、u速度、v速度、流向随时间的变化
         plt.subplot(2, 2, 1)
@@ -132,7 +132,9 @@ def points_tide_flow(nc_path, png_path, lon_stn=[681870.630, 704213.096, 723780.
         # 保存图片到指定路径
         if not os.path.exists(png_path + 'flow_tide'):
             os.makedirs(png_path + 'flow_tide')  # 如果文件夹不存在则创建
-        output_file = os.path.join(png_path,'flow_tide', f"{png_name}_{stn_name[i]}.png")
+        # output_file = os.path.join(png_path,'flow_tide', f"{png_name}_{stn_name[i]}.png")
+        output_file = os.path.join(png_path,'flow_tide', f"{png_name}")
+        print("04脚本： 点潮位流速生成---" + output_file)
         plt.savefig(output_file, dpi=300)
         # 调整布局
         plt.tight_layout()

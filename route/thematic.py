@@ -19,7 +19,7 @@ def thematic_routes(app):
         data = request.get_json()
         print(data)
         # 获取工程id
-        project_id = data.get('project_id')
+        project_id = data.get('project_id') or "jhhhkkllmnhhuoolmmnbv"
         # 获取专题图类型
         thematic_type = data.get('thematic_type')
         # thematic_name = data.get('thematic_name')
@@ -212,9 +212,10 @@ def thematic_routes(app):
             costaline = thematic_configs.get('costaline') or app.config['TEMP_DIR'] +f'/{project_id}/coastline.npz'
             png_path = thematic_configs.get('png_path') or app.config['TEMP_DIR'] +f'/{project_id}/png/'
             # 获取专题图参数配置
-            lon_stn = ast.literal_eval(thematic_configs.get('lon_stn')) or [450500, 451500]  # 观测站经度序列
-            lat_stn = ast.literal_eval(thematic_configs.get('lat_stn')) or [4250500, 4252000]  # 观测站维度序列
-            stn_name = thematic_configs.get('stn_name') or ['默认站1', '默认站2']  # 观测站名称
+            lon_stn = ast.literal_eval(thematic_configs.get('lon_stn'))   # 观测站经度序列
+            lat_stn = ast.literal_eval(thematic_configs.get('lat_stn'))   # 观测站维度序列
+ 
+            stn_name =  ast.literal_eval(thematic_configs.get('stn_name')) or ['默认站1', '默认站2']  # 观测站名称
             time_interval = ast.literal_eval(thematic_configs.get('time_interval')) or (0, 100)  # 时间步范围
              # 绘制点潮位流速图
             from modules.thematic.points_tide_flow import points_tide_flow
