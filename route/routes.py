@@ -10,9 +10,7 @@ from modules.depth.updateDEM2json import updateDepth
 from modules.mesh.refinement_mesh import refinement_mesh,delete_files
 from modules.mesh.updatemesh import  reindex_mesh,reindex_mesh_withfile,reindex_mesh_nofile
 from modules.wind.gen_wind_nc import generate_wind_netcdf
-from modules.pltf.pltf import get_pltf_points,get_pltf_timeList
-from modules.pltf.nc2png import png_from_uv
-from modules.pltf.get_nc_value import uv_from_tif
+
 from modules.thematic.gen_maps import get_coastline_from_npz
 from modules.mesh.extra_bd_attr import extra_bd_attr
 from modules.mesh.sizeCaculate import calculate_mesh_size
@@ -177,52 +175,7 @@ def init_routes(app):
         # 使用 send_file 返回图片数据
         return send_file(image_path, mimetype='image/png')
     #   return jsonify({'data': costline,'success': True}), 200
-    ####===========================模型结果pltf渲染部分=====================================####
-    # 获取某时间和层数的uv
-    @app.route('/gen-pltf', methods=['GET', 'POST'])
-    def gen_pltf():
-        # # 从请求中解析GeoJSON和步长参数
-        # data = request.get_json()
-        # geojson = data.get('time_index')
-        # geojson  =get_pltf_points(app.config['STATIC_DIR']+"/pltf/pltf_0002.nc", 100, 0  )
-
-        # jsonfile = app.config['TEMP_DIR']+f"/geojson_{uuid.uuid4()}.json"
-        # with open(jsonfile, 'w') as f:   
-        #     json.dump(geojson, f)
-        png,bbox = png_from_uv(0,100,'200*200',app.config['TEMP_DIR'] +'/wave.png',app.config['STATIC_DIR'] +'/pltf/pltf_0002.nc')
-        # return jsonify(geojson),200
- 
-        return send_file(app.config['TEMP_DIR'] +'/wave.png', mimetype='image/png')
-        # return jsonify( {"data":geojson,"bbox":bbox,"png":png,"timeList":list,"success":True}), 200
-    # 获取时间信息
-    @app.route('/get-nc-time', methods=['GET', 'POST'])
-    def data_pltf():
-        data = request.get_json()
-        nc_path = data.get('nc_path')
-        list  =get_pltf_timeList(nc_path)
-        return jsonify({'data': list,'success': True}), 200
-    # 获取某时间和层数的uv
-    @app.route('/get-uv', methods=['GET', 'POST'])
-    def get_uv():
-        import ast
-        # 从请求中解析GeoJSON和步长参数
-        data = request.get_json()
-        print(data)
-        time_index = data.get('time_index') or 0
-        siglay = data.get('siglay') or 0
-        ncfilePath= data.get('path') or app.config['STATIC_DIR']+"/pltf/pltf_0002.nc"
-        coordinates =  ast.literal_eval(data.get('coordinates')) or (116.366667, 39.933333)
-        if time_index is None or siglay is None:
-            return jsonify({'error': 'time_index and siglay_index are required'}), 400
-        # 调用函数获取uv值
-        try:
-            uv = uv_from_tif(siglay, time_index, '200*200', ncfilePath , coordinates)
-            # uv 转为json格式
-            uv = json.dumps(np.array(uv, dtype=np.float32).astype(float).tolist())
-            return jsonify({'data': uv,'success': True}), 200
-        except Exception as e:
-            print(str(e))
-            return jsonify({'error': '发生未知错误: ' + str(e)}), 500
+  
     ####===========================水深部分=====================================####
     #更新网格水深值
     @app.route('/updateDepth', methods=['GET', 'POST'])

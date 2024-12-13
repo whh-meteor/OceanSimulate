@@ -33,10 +33,10 @@ config = {
 def read_nc(nc_path, analog_name,time_index=50):
     nc_file = Dataset(nc_path)
      # 先打印变量信息进行调试
-    print("Variables in the file:")
-    for var_name in nc_file.variables:
-        var = nc_file.variables[var_name]
-        print(f"{var_name}: {var.dimensions}, shape: {var.shape}")
+    # print("NecCDF 文件变量:")
+    # for var_name in nc_file.variables:
+    #     var = nc_file.variables[var_name]
+    #     # print(f"{var_name}: {var.dimensions}, shape: {var.shape}")
         
     lon = nc_file.variables['x'][:]
     lat = nc_file.variables['y'][:]
@@ -45,7 +45,7 @@ def read_nc(nc_path, analog_name,time_index=50):
     time = nc_file.variables['time']
     # data_time_byte=time[0, :]
     data_time_byte=time[:] # 获取所有元素
-    print(data_time_byte)
+    # print(data_time_byte)
     a = len(data_time_byte)
     results = []
     i = time_index
@@ -68,25 +68,25 @@ def read_nc(nc_path, analog_name,time_index=50):
     # 解码有效数据
     try:
         data_time_char = np.char.decode(valid_data)
-        print("解码后的数据:", data_time_char)
+        # print("解码后的数据:", data_time_char)
     except Exception as e:
         print("解码失败:", e)
     #  data_time_char = np.char.decode(data_time_byte_char)[:]
     data_time = ''.join(data_time_char)
-    print( "时间:", data_time)
+    # print( "时间:", data_time)
     #  data_time = format_string_date(data_time, '%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%d %H:%M:%S')
     for item in items:
         if item in nc_file.variables:
-            print(f"开始处理{item}数据")
+            # print(f"开始处理{item}数据")
             variable = nc_file.variables[item]
             # 遍历每一层级
             for layer in layers:
                 layer_data = np.array(variable[i, layer, :], dtype=np.float64)
-                print(f"Layer {layer} min: {np.min(layer_data)}, max: {np.max(layer_data)}")
+                # print(f"Layer {layer} min: {np.min(layer_data)}, max: {np.max(layer_data)}")
 
                 for i1,value in enumerate(layer_data):
                     if value<0 :
-                        print(f"发现小于0负值，将其置为0")
+                        # print(f"发现小于0负值，将其置为0")
                         layer_data[i1] = 0
                     # if value>0 :
                             # print(f"发现>0.01正值!!!")
@@ -111,7 +111,8 @@ def read_nc(nc_path, analog_name,time_index=50):
                 # # 读取后删除dir目录
                 dataset = None
                 shutil.rmtree(dir_path)
-                data_after_fli = np.flipud(grid_data)
+                # data_after_fli = np.flipud(grid_data)
+                data_after_fli = grid_data #   因为dye数据是上下颠倒的，所以不用再翻转了
                 data = data_after_fli.reshape(-1)
                 grid_data_json = format_data(lon, lat, data, item)
                 result = {
@@ -262,23 +263,24 @@ def format_data(lon, lat, data, item):
         "max": max(data_after_round),
         "min": min(data_after_round)
     }
+ 
     return {
-        "data": data_after_round,
+         "data": data_after_round,  
         "header": header
     }
  
 def dye2json(nc_path,time):
-        nc_file_path = nc_path or "F:\\Desktop\\ZIZHI-DYE-01.nc"
-        analog_name = sys.argv[2] if len(sys.argv) > 2 else '1805503841063596034'
+        nc_file_path = nc_path  
+        analog_name =   uuid.uuid4()
         time = time or 50
         results = read_nc(nc_file_path, analog_name, time)
-        print(results)
+        # print(results)
         return results
 def main():
         nc_file_path = sys.argv[1] if len(sys.argv) > 1 else "F:\\Desktop\\ZIZHI-DYE-01.nc"
         analog_name = sys.argv[2] if len(sys.argv) > 2 else '1805503841063596034'
         results = read_nc(nc_file_path, analog_name)
-        print(results)
+        # print(results)
         return results
  
 

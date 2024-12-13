@@ -11,7 +11,7 @@ def extract_time_from_nc(nc_file_path):
     with nc.Dataset(nc_file_path, 'r') as dataset:
   # 提取时间变量
         time_var = dataset.variables['time'][:]
-        time_units = "hours since 1900-01-01"
+        time_units = "hours since 2024-01-01"
         
         # 解析时间单位，获取时间参考点
         time_units_split = time_units.split(" since ")
