@@ -1,4 +1,5 @@
-from flask import Flask, request, send_file, jsonify, make_response
+import base64
+from flask import Flask, Response, request, send_file, jsonify, make_response
 from modules.mesh.services import erase_geojson_with_shp,get_larger_file_index,erase_geojson_with_shp_geopandas,shp_to_geojson_with_geopandas,erase_geojson_with_shp_gdal,GenerateMesh,Geojson_to_Mesh,transPoint2WGS84,dat_to_geojson_with_conversion,Mesh_nodes_to_Triangle_Json,bln_to_geojson,LinesJosn2WGS84
 from io import BytesIO
 from werkzeug.utils import secure_filename
@@ -21,7 +22,7 @@ import uuid
 import configparser
 import sys
 from utils.config import get_config_path
-
+import geobuf
 config = configparser.ConfigParser()
 config_file_path = get_config_path()
 # 从配置文件加载大文件路径
@@ -434,7 +435,16 @@ def init_routes(app):
         average_mesh_size = calculate_mesh_size(geojson2, mode="average")
         print(f"Average mesh size: {average_mesh_size}")
         geojson3=updateDepthAndReindex(geojson2,average_mesh_size)
-        return jsonify({'data': geojson3,'success': True}), 200
+            # 编码 GeoJSON 为 geobuf 格式的 bytes
+        geobuf_bytes = geobuf.encode(geojson3)
+
+        # 将 bytes 转换为 Base64 编码字符串
+        geobuf_base64 = base64.b64encode(geobuf_bytes).decode('utf-8')
+        print(geobuf_base64)
+        # return jsonify({'geobuf': geobuf_base64}), 200 
+        # 返回二进制数据
+        # return Response(geobuf.encode( (geojson3)), content_type='application/octet-stream')
+        return jsonify({'data': geobuf_base64,'success': True}), 200
     # 网格加密
     @app.route('/encrypt-mesh', methods=['GET', 'POST'])
     def encrypt_mesh():

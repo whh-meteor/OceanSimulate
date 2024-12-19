@@ -4,7 +4,7 @@
 a = Analysis(
     ['app.py'],
     pathex=[],
-    binaries=[],
+    binaries=[('/path/to/libgmsh.so.4.13', 'libgmsh.so.4.13')],
     datas=[],
     hiddenimports=[],
     hookspath=[],
