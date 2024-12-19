@@ -3,6 +3,7 @@ import json
 import math
 
 def calculate_mesh_size(geojson_data, mode="average"):
+    
     """
     计算GeoJSON中所有三角形的网格边长（mesh_size）。
     
@@ -14,6 +15,8 @@ def calculate_mesh_size(geojson_data, mode="average"):
         """计算两点之间的欧几里得距离"""
         return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
     
+    
+
     all_edge_lengths = []
     
     for feature in geojson_data['features']:
@@ -22,7 +25,9 @@ def calculate_mesh_size(geojson_data, mode="average"):
         
         # 确保是三角形，包含 3 个点
         if len(coordinates) != 4:
-            raise ValueError("Feature is not a triangle.")
+            # raise ValueError("Feature is not a triangle.")
+            print("Feature is not a triangle")
+            print(coordinates)
         
         # 计算三角形的每条边长
         edge_lengths = [

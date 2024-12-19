@@ -182,6 +182,10 @@ def Geojson_to_Mesh(geojson_data):
         points_properties = feature['properties']['points_properties']
         
         node_ids = []
+        # 检查 coordinates 和 points_properties 是否长度一致
+        if len(coordinates) - 1 != len(points_properties):
+            raise ValueError(f"{triangle_id}Coordinates length: {len(coordinates)}, Points properties length: {len(points_properties)}. Lengths are inconsistent.")
+
         for i, coord in enumerate(coordinates[:-1]):  # 跳过最后一个坐标，因为它是第一个坐标的重复
             point = points_properties[i]
             node_id = point['id']

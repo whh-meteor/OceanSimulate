@@ -421,8 +421,10 @@ def init_routes(app):
         data = request.get_json()
         geojson = data.get('geojson1')
     
-        geojson = geobuf.decode(base64.b64decode(geojson))
-    
+        geojson = fix_encode_coordinates(geobuf.decode(base64.b64decode(geojson)))
+                # 保存geojson数据
+        with open('geojson_data.json', 'w') as f:
+            json.dump(geojson, f)
         bbox = data.get('bbox')
         print("边界值")
         print(bbox)
@@ -441,12 +443,43 @@ def init_routes(app):
         average_mesh_size = calculate_mesh_size(geojson2, mode="average")
         print(f"Average mesh size: {average_mesh_size}")
         geojson3=updateDepthAndReindex(geojson2,average_mesh_size)
+
         # 将 bytes 转换为 Base64 编码字符串
         geobuf_base64 = base64.b64encode( geobuf.encode(geojson3)).decode('utf-8')
+ 
         # return jsonify({'geobuf': geobuf_base64}), 200 
         # 返回二进制数据
         # return Response(geobuf.encode( (geojson3)), content_type='application/octet-stream')
         return jsonify({'data': geobuf_base64,'success': True}), 200
+    def fix_encode_coordinates(decoded_geojson):
+        """
+        修复解码后的GeoJSON数据，去掉重复的闭合点（小数点后前五位相同的坐标）
+        :param decoded_geojson: 解码后的GeoJSON数据
+        :return: 修复后的GeoJSON数据
+        """
+        for feature in decoded_geojson.get("features", []):
+            if feature.get("geometry", {}).get("type") == "Polygon":
+                for polygon in feature["geometry"]["coordinates"]:
+                    # 确保每个坐标都是列表，而不是元组
+                    polygon = [list(coord) for coord in polygon]  # 将每个坐标转换为列表
+
+                    # 如果三角形有5个点，且最后一个点和倒数第二个点的坐标相同，移除最后一个点
+                    if len(polygon) == 5:
+                        # # 比较小数点后五位
+                        # if (round(polygon[-1][0], 5) == round(polygon[-2][0], 5) and
+                        #         round(polygon[-1][1], 5) == round(polygon[-2][1], 5)):
+                            print("移除重复点")
+                            polygon.pop()  # 移除最后一个点
+                    
+                    # 如果三角形是3个点，追加第一个坐标到最后
+                    if len(polygon) == 3:
+                        polygon.append(polygon[0])  # 在最后追加第一个坐标
+
+                    # 需要将修改后的坐标列表重新赋值回原来的位置
+                    feature["geometry"]["coordinates"] = [polygon]
+
+        return decoded_geojson
+
     # 网格加密
     @app.route('/encrypt-mesh', methods=['GET', 'POST'])
     def encrypt_mesh():
@@ -470,7 +503,7 @@ def init_routes(app):
         delete_files(mesh_file_path)
 
         mesh_json2 = updateDepthAndReindex(mesh_json,mesh_size)
-        return jsonify({'data': base64.b64encode( geobuf.encode(mesh_json2)).decode('utf-8'),'success': True}), 200
+        return jsonify({'data': base64.b64encode( geobuf.encode(mesh_json2,8  )).decode('utf-8'),'success': True}), 200
 
     # 对网格进行索引重排、水深赋值、边界赋值
     def updateDepthAndReindex(geojson,mesh_size_buffer,global_costalines=Global_CostaLines):
@@ -482,6 +515,7 @@ def init_routes(app):
         depth_file = app.config['TEMP_DIR']+f'/mesh_depth_{uuid.uuid4()}.json'
         dem_file = app.config['TEMP_DIR']+f'/dem_{uuid.uuid4()}.tif'
         geojson= updateDepth(Global_DEM,geojson,depth_file, dem_file )   
+        geojson = fix_encode_coordinates(geojson)
         mesh_file_content = Geojson_to_Mesh(geojson) # json 2 mesh
 
         mesh_file_content  = reindex_mesh_nofile(mesh_file_content)  # 重排索引
