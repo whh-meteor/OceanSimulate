@@ -350,6 +350,7 @@ def init_routes(app):
         print(data)
         # 从JSON中获取GeoJSON对象
         geojson = data.get('geojson1')
+        geojson = geobuf.decode(base64.b64decode(geojson))
           # 获取步长参数 , 默认0.01
         mesh_size = data.get('mesh_size')
         if mesh_size is None or mesh_size<=0:
@@ -362,7 +363,7 @@ def init_routes(app):
         mesh_file_path= GenerateMesh(geojson, mesh_size,"geo.geo","msh.msh",app.config['TEMP_DIR'] +"/mesh.mesh")
         geojson =  Mesh_nodes_to_Triangle_Json(mesh_file_path)
         # 返回生成的 .mesh 文件内容
-        return jsonify({'data': geojson,'success': True}), 200
+        return jsonify({'data': base64.b64encode( geobuf.encode(geojson)).decode('utf-8'),'success': True}), 200
     # 面与岸线裁剪 
     @app.route('/clip-mesh', methods=['GET', 'POST'])
     def clip2mesh():
@@ -371,6 +372,7 @@ def init_routes(app):
         # print(data)
         # 从JSON中获取GeoJSON对象
         geojson = data.get('geojson1')
+ 
         if geojson is None:
             return jsonify({'error': 'GeoJSON is required'}), 400
         # 调用生成 mesh 的函数
@@ -392,6 +394,7 @@ def init_routes(app):
     def genclip2mesh():
         data = request.get_json() # 从请求中解析GeoJSON和步长参数
         geojson = data.get('geojson1') # 从JSON中获取GeoJSON对
+        geojson = geobuf.decode(base64.b64decode(geojson))
         mesh_size = data.get('mesh_size') # 获取步长参数 , 默认0.1
         if mesh_size is None or mesh_size<=0:
             return jsonify({'error': 'Invalid mesh_size.'}), 400
@@ -410,13 +413,16 @@ def init_routes(app):
         # 删除返回生成的 .mesh 文件内容
         for file_path in mesh_file_path:
             delete_files(file_path)
-        return jsonify({'data': geojson4,'success': True}), 200
+        return jsonify({'data': base64.b64encode( geobuf.encode(geojson4)).decode('utf-8'),'success': True}), 200
     # 网格移动后裁剪
     @app.route('/clipmesh', methods=['GET', 'POST'])
     def clipOffsetmesh():
 
         data = request.get_json()
         geojson = data.get('geojson1')
+    
+        geojson = geobuf.decode(base64.b64decode(geojson))
+    
         bbox = data.get('bbox')
         print("边界值")
         print(bbox)
@@ -435,12 +441,8 @@ def init_routes(app):
         average_mesh_size = calculate_mesh_size(geojson2, mode="average")
         print(f"Average mesh size: {average_mesh_size}")
         geojson3=updateDepthAndReindex(geojson2,average_mesh_size)
-            # 编码 GeoJSON 为 geobuf 格式的 bytes
-        geobuf_bytes = geobuf.encode(geojson3)
-
         # 将 bytes 转换为 Base64 编码字符串
-        geobuf_base64 = base64.b64encode(geobuf_bytes).decode('utf-8')
-        print(geobuf_base64)
+        geobuf_base64 = base64.b64encode( geobuf.encode(geojson3)).decode('utf-8')
         # return jsonify({'geobuf': geobuf_base64}), 200 
         # 返回二进制数据
         # return Response(geobuf.encode( (geojson3)), content_type='application/octet-stream')
@@ -468,7 +470,7 @@ def init_routes(app):
         delete_files(mesh_file_path)
 
         mesh_json2 = updateDepthAndReindex(mesh_json,mesh_size)
-        return jsonify({'data': mesh_json2,'success': True}), 200
+        return jsonify({'data': base64.b64encode( geobuf.encode(mesh_json2)).decode('utf-8'),'success': True}), 200
 
     # 对网格进行索引重排、水深赋值、边界赋值
     def updateDepthAndReindex(geojson,mesh_size_buffer,global_costalines=Global_CostaLines):
@@ -505,7 +507,9 @@ def init_routes(app):
     def coastline_clip_mesh():
         data = request.get_json()
         clip_geojson = data.get('clip_geojson')
+        # clip_geojson = geobuf.decode(base64.b64decode(clip_geojson))
         mesh_geojson = data.get('mesh_geojson')
+        mesh_geojson = geobuf.decode(base64.b64decode(mesh_geojson))
         mesh_bbox = data.get('mesh_bbox')
         if clip_geojson is None or mesh_geojson is None:
             return jsonify({'error': 'GeoJSON is required'}), 400
@@ -522,7 +526,7 @@ def init_routes(app):
 
         delete_files(temp_cosatalines+".shp",temp_cosatalines+".cpg",temp_cosatalines+".dbf",temp_cosatalines+".shx",temp_cosatalines+".prj")
         delete_files(temp_shp_clip+".shp",temp_shp_clip+".cpg",temp_shp_clip+".dbf",temp_shp_clip+".shx",temp_shp_clip+".prj")
-        return jsonify({'data': geojson_res,'success': True}), 200
+        return jsonify({'data':  base64.b64encode( geobuf.encode(geojson_res)).decode('utf-8'),'success': True}), 200
 
    ####=======================潮位部分========================================####
     @app.route('/get_tide', methods=['POST'])
