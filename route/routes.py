@@ -417,14 +417,9 @@ def init_routes(app):
     # 网格移动后裁剪
     @app.route('/clipmesh', methods=['GET', 'POST'])
     def clipOffsetmesh():
-
         data = request.get_json()
         geojson = data.get('geojson1')
-    
         geojson = fix_encode_coordinates(geobuf.decode(base64.b64decode(geojson)))
-                # 保存geojson数据
-        with open('geojson_data.json', 'w') as f:
-            json.dump(geojson, f)
         bbox = data.get('bbox')
         print("边界值")
         print(bbox)
@@ -503,7 +498,7 @@ def init_routes(app):
         delete_files(mesh_file_path)
 
         mesh_json2 = updateDepthAndReindex(mesh_json,mesh_size)
-        return jsonify({'data': base64.b64encode( geobuf.encode(mesh_json2,8  )).decode('utf-8'),'success': True}), 200
+        return jsonify({'data': base64.b64encode( geobuf.encode(mesh_json2)).decode('utf-8'),'success': True}), 200
 
     # 对网格进行索引重排、水深赋值、边界赋值
     def updateDepthAndReindex(geojson,mesh_size_buffer,global_costalines=Global_CostaLines):
